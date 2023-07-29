@@ -1,0 +1,36 @@
+version: '3.4'
+
+services:
+  instahelperbot:
+    container_name: "instahelperbot"
+    restart: always
+    image: ${DOCKER_REGISTRY-}instahelperbot
+    build:
+      context: .
+      dockerfile: InstaHelperBot/Dockerfile
+    ports:
+      - "80:80"
+    networks:
+      - deploy-guide-dev
+    depends_on:
+      - db
+  db:
+    container_name: "db"
+    image: postgres:12.2-alpine
+    restart: always
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_PASSWORD: botinsat2003
+      POSTGRES_USER: insta
+      POSTGRES_DB: botinstanalis
+    networks:
+      - deploy-guide-dev
+    volumes:
+      - database_postgres:/var/lib/postgresql/data
+volumes:
+  database_postgres:
+
+networks:
+  deploy-guide-dev:
+    driver: bridge

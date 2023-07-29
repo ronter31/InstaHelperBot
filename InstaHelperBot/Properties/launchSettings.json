@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "InstaHelperBot": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
