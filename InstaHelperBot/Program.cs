@@ -20,7 +20,7 @@ namespace TelegramBotExperiments
     public class Program
     {
 
-        public ITelegramBotClient bot = new TelegramBotClient("6303354042:AAHnMeN8fkkdWyhmIfxCCijJ5-Zlgz3gq4s");
+        public ITelegramBotClient bot = new TelegramBotClient("6518148750:AAFjA3kiJ-fDxaCUrdU1UfOFOUsPWtISLTM");
 
         public string connString = "Host=db;Username=insta;Password=botinsat2003;Database=botinstanalis";
         //protected  string connString => @$"Host=db;Username=insta;Password=botinsat2003;Database=botinstanalis";
@@ -93,7 +93,7 @@ namespace TelegramBotExperiments
 
                 if (chatIdCh == 0) chatIdCh = message.Chat.Id;
 
-                if (message.Text.ToLower() == "/start" || message.Text.ToLower() == "перезапустить")
+                if (message.Text.ToLower() == "/start" || message.Text.ToLower() == "перезагрузка".ToLower())
                 {
                     await botClient.SendTextMessageAsync(message.Chat, "Добро пожаловать!");
                     if (!UsersList.Any(x => x.IdUniq == message.From.Username))
@@ -103,11 +103,11 @@ namespace TelegramBotExperiments
                     else
                     {
                         isAdminPanel = true;
-                        await botClient.SendTextMessageAsync(message.Chat, @$"Добрый день {message.From.Username}. Вы уже зарегистрированы");
+                        await botClient.SendTextMessageAsync(message.Chat, @$"Добрый день, {message.From.Username}. Вы уже зарегистрированы");
 
-                        ReplyKeyboardMarkup replyKeyboardMarkup = new(new[] { new KeyboardButton[] { "Перезапустить", "Посты" },
-                                                                          new KeyboardButton[] { "ПравилаЗамены", "УдалитьПосты" },
-                                                                          new KeyboardButton[] { "TeleGrSetupName", "TeleGrDeleteName" },
+                        ReplyKeyboardMarkup replyKeyboardMarkup = new(new[] { new KeyboardButton[] { "Перезагрузка", "Выгрузить посты" },
+                                                                          new KeyboardButton[] { "Замена слов", "Удалить посты" },
+                                                                          new KeyboardButton[] { "Указать канал ТГ", "Удалить канал ТГ" },
                                                                           new KeyboardButton[] { "InstSetupName" }})
                         {
                             ResizeKeyboard = true
@@ -130,9 +130,9 @@ namespace TelegramBotExperiments
                     await botClient.SendTextMessageAsync(message.Chat, "Вход в админку успешен");
 
                     isAdminPanel = true;
-                    ReplyKeyboardMarkup replyKeyboardMarkup = new(new[] { new KeyboardButton[] { "Перезапустить", "Посты" },
-                                                                          new KeyboardButton[] { "ПравилаЗамены", "УдалитьПосты" },
-                                                                          new KeyboardButton[] { "TeleGrSetupName", "TeleGrDeleteName" },
+                    ReplyKeyboardMarkup replyKeyboardMarkup = new(new[] { new KeyboardButton[] { "Перезагрузка", "Выгрузить посты" },
+                                                                          new KeyboardButton[] { "Замена слов", "Удалить посты" },
+                                                                          new KeyboardButton[] { "Указать канал ТГ", "Удалить канал ТГ" },
                                                                           new KeyboardButton[] { "InstSetupName" }})
                     {
                         ResizeKeyboard = true
@@ -158,7 +158,7 @@ namespace TelegramBotExperiments
                         return;
 
                     }
-                    if (message.Text.ToLower() == "TeleGrSetupName".ToLower())
+                    if (message.Text.ToLower() == "Указать канал ТГ".ToLower())
                     {
                         QueryTruncate("TelegramGroup");
                         setupTG = true;
@@ -166,7 +166,7 @@ namespace TelegramBotExperiments
                         return;
                     }
 
-                    if (message.Text.ToLower() == "TeleGrDeleteName".ToLower())
+                    if (message.Text.ToLower() == "Удалить канал ТГ".ToLower())
                     {
                         QueryTruncate("TelegramGroup");
                         chatIdCh = message.Chat.Id;
@@ -225,17 +225,17 @@ namespace TelegramBotExperiments
                         isLoading = false;
                     }
 
-                    if (message.Text.ToLower() == "удалитьпосты".ToLower())
+                    if (message.Text.ToLower() == "Удалить посты".ToLower())
                     {
                         QueryTruncate("Posts");
                         await botClient.SendTextMessageAsync(message.Chat, "Посты удалены");
                         return;
                     }
 
-                    if (message.Text.ToLower() == "посты".ToLower() && АccountList().Count != 0)
+                    if (message.Text.ToLower() == "Выгрузить посты".ToLower() && АccountList().Count != 0)
                     {
 
-                        await botClient.SendTextMessageAsync(message.Chat, "запустили процесс анализа постов");
+                        await botClient.SendTextMessageAsync(message.Chat, "Запущен процесс анализа постов📣");
                         if (TelegramGroupList.Count == 0)
                             chatIdCh = message.Chat.Id;
                         isLoading = true;
@@ -261,7 +261,7 @@ namespace TelegramBotExperiments
                     }
 
 
-                    if (message.Text.ToLower() == "правилазамены")
+                    if (message.Text.ToLower() == "Замена слов".ToLower())
                     {
                         InlineKeyboardMarkup inlineKeyboard = new(new[]
                 {
