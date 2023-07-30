@@ -56,7 +56,7 @@ namespace TelegramBotExperiments
 
         private string NameAccaunt()
         {
-            return account.UserName ?? АccountList().First().UserName ?? "Не задан аккаунт инстаграма";
+            return account.UserName ?? (АccountList().Count > 0 ? АccountList().First().UserName : null) ?? "Не задан аккаунт инстаграма";
         }
 
 
@@ -174,6 +174,9 @@ namespace TelegramBotExperiments
                     {
                         QueryTruncate("TelegramGroup");
                         chatIdCh = message.Chat.Id;
+                        await botClient.SendTextMessageAsync(message.Chat, "Канал ТГ удален");
+                        return;
+
                     }
 
 
@@ -205,18 +208,21 @@ namespace TelegramBotExperiments
                         {
                             await botClient.SendTextMessageAsync(message.Chat, $"Не залогинились, повтори попытку ");
                         }
+                        return;
                     }
 
                     if (account.UserName == string.Empty && account.Password == string.Empty && account.TypeAcc != string.Empty)
                     {
                         account.UserName = message.Text;
                         await botClient.SendTextMessageAsync(message.Chat, "Введите свой пароль инстаграмма");
+                        return;
                     }
 
                     if (account.UserName == string.Empty && account.Password == string.Empty && account.TypeAcc == string.Empty)
                     {
                         account.TypeAcc = message.Text;
                         await botClient.SendTextMessageAsync(message.Chat, "Введите свой логин инстаграмма");
+                        return;
                     }
 
                     if (message.Text.ToLower() == NameAccaunt().ToLower())
@@ -227,6 +233,7 @@ namespace TelegramBotExperiments
                         account.TypeAcc = string.Empty;
 
                         isLoading = false;
+                        return;
                     }
 
                     if (message.Text.ToLower() == "Удалить посты".ToLower())
@@ -468,8 +475,6 @@ namespace TelegramBotExperiments
 
         public async Task RunBot()
         {
-            //АccountList() = GetАccount();
-
             var cts = new CancellationTokenSource();
             var cancellationToken = cts.Token;
             var receiverOptions = new ReceiverOptions
