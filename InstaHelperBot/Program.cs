@@ -23,7 +23,6 @@ namespace TelegramBotExperiments
         public ITelegramBotClient bot = new TelegramBotClient("6518148750:AAFjA3kiJ-fDxaCUrdU1UfOFOUsPWtISLTM");
 
         public string connString = "Host=db;Username=insta;Password=botinsat2003;Database=botinstanalis";
-        //protected  string connString => @$"Host=db;Username=insta;Password=botinsat2003;Database=botinstanalis";
 
         public Task<InstaMediaList> InstaPostSource => GetInstaPost();
 
@@ -54,6 +53,11 @@ namespace TelegramBotExperiments
         private long chatIdCh { get; set; }
         private bool setupTG = false;
         private Аccount account = new Аccount() { };
+
+        private string NameAccaunt()
+        {
+            return account.UserName ?? АccountList().First().UserName ?? "Не задан аккаунт инстаграма";
+        }
 
 
         public async static Task Main(string[] args)
@@ -108,7 +112,7 @@ namespace TelegramBotExperiments
                         ReplyKeyboardMarkup replyKeyboardMarkup = new(new[] { new KeyboardButton[] { "Перезагрузка", "Выгрузить посты" },
                                                                           new KeyboardButton[] { "Замена слов", "Удалить посты" },
                                                                           new KeyboardButton[] { "Указать канал ТГ", "Удалить канал ТГ" },
-                                                                          new KeyboardButton[] { "InstSetupName" }})
+                                                                          new KeyboardButton[] { NameAccaunt() }})
                         {
                             ResizeKeyboard = true
                         };
@@ -133,7 +137,7 @@ namespace TelegramBotExperiments
                     ReplyKeyboardMarkup replyKeyboardMarkup = new(new[] { new KeyboardButton[] { "Перезагрузка", "Выгрузить посты" },
                                                                           new KeyboardButton[] { "Замена слов", "Удалить посты" },
                                                                           new KeyboardButton[] { "Указать канал ТГ", "Удалить канал ТГ" },
-                                                                          new KeyboardButton[] { "InstSetupName" }})
+                                                                          new KeyboardButton[] { NameAccaunt() }})
                     {
                         ResizeKeyboard = true
                     };
@@ -215,7 +219,7 @@ namespace TelegramBotExperiments
                         await botClient.SendTextMessageAsync(message.Chat, "Введите свой логин инстаграмма");
                     }
 
-                    if (message.Text.ToLower() == "InstSetupName".ToLower())
+                    if (message.Text.ToLower() == NameAccaunt().ToLower())
                     {
                         await botClient.SendTextMessageAsync(message.Chat, "Введите название канала");
                         account.UserName = string.Empty;
@@ -272,7 +276,7 @@ namespace TelegramBotExperiments
                         },
                         new []
                         {
-                            InlineKeyboardButton.WithCallbackData(text: "Очмстить таблицу с правилами", callbackData: "clearDataRegex")
+                            InlineKeyboardButton.WithCallbackData(text: "Очистить таблицу с правилами", callbackData: "clearDataRegex")
                         }
                     });
 
