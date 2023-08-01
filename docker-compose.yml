@@ -14,6 +14,8 @@ services:
       - deploy-guide-dev
     depends_on:
       - db
+    environment:
+      token: "6518148750:AAFjA3kiJ-fDxaCUrdU1UfOFOUsPWtISLTM"
   db:
     container_name: "db"
     image: postgres:12.2-alpine

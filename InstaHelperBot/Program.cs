@@ -20,7 +20,7 @@ namespace TelegramBotExperiments
     public class Program
     {
 
-        public ITelegramBotClient bot = new TelegramBotClient("6518148750:AAFjA3kiJ-fDxaCUrdU1UfOFOUsPWtISLTM");
+        public ITelegramBotClient bot = new TelegramBotClient(token: Environment.GetEnvironmentVariable("token"));
 
         public string connString = "Host=db;Username=insta;Password=botinsat2003;Database=botinstanalis";
 
@@ -54,15 +54,17 @@ namespace TelegramBotExperiments
         private bool setupTG = false;
         private Аccount account = new Аccount() { };
 
+        private bool isNameChanal = false;
+        private bool isAccaunt = false;
+
         private string NameAccaunt()
         {
-            return account.UserName ?? (АccountList().Count > 0 ? АccountList().First().UserName : null) ?? "Не задан аккаунт инстаграма";
+            return account.TypeAcc ?? (АccountList().Count > 0 ? АccountList().First().TypeAcc : null) ?? "Не задан аккаунт инстаграма";
         }
 
 
         public async static Task Main(string[] args)
         {
-
             Program pr = new Program();
 
             Migration migration = new(pr.connString);
@@ -112,7 +114,7 @@ namespace TelegramBotExperiments
                         ReplyKeyboardMarkup replyKeyboardMarkup = new(new[] { new KeyboardButton[] { "Перезагрузка", "Выгрузить посты" },
                                                                           new KeyboardButton[] { "Замена слов", "Удалить посты" },
                                                                           new KeyboardButton[] { "Указать канал ТГ", "Удалить канал ТГ" },
-                                                                          new KeyboardButton[] { NameAccaunt() }})
+                                                                          new KeyboardButton[] { $"Канал 📸{NameAccaunt()}", "Логин/Пароль Инстаграмма" }})
                         {
                             ResizeKeyboard = true
                         };
@@ -137,7 +139,7 @@ namespace TelegramBotExperiments
                     ReplyKeyboardMarkup replyKeyboardMarkup = new(new[] { new KeyboardButton[] { "Перезагрузка", "Выгрузить посты" },
                                                                           new KeyboardButton[] { "Замена слов", "Удалить посты" },
                                                                           new KeyboardButton[] { "Указать канал ТГ", "Удалить канал ТГ" },
-                                                                          new KeyboardButton[] { NameAccaunt() }})
+                                                                          new KeyboardButton[] { $"Канал 📸{NameAccaunt()}", "Логин/Пароль Инстаграмма" }})
                     {
                         ResizeKeyboard = true
                     };
@@ -179,63 +181,125 @@ namespace TelegramBotExperiments
 
                     }
 
-
-                    if (account.UserName != string.Empty && account.Password == string.Empty && account.TypeAcc != string.Empty)
+                    if (message.Text.ToLower() == "Логин/Пароль Инстаграмма".ToLower())
                     {
-                        account.Password = message.Text;
-                        await botClient.SendTextMessageAsync(message.Chat, "Успешно сохранили данные для инстаграма");
+                        await botClient.SendTextMessageAsync(message.Chat, "Введите логин инстаграмма");
 
-                        QueryTruncate("Аccount");
-                        nameProfilInstagram = account.TypeAcc;
-                        QueryInsertАccount(account.TypeAcc, account.UserName, account.Password);
+                        account.UserName = string.Empty;
+                        account.Password = string.Empty;
+                        isAccaunt = true;
+                        isLoading = false;
 
-                        try
-                        {
-                            _login = null;
-                            var Islogin = LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1)).Result.Succeeded;
-                            if (!Islogin)
-                            {
-                                await botClient.SendTextMessageAsync(message.Chat, $"Не залогинились, повтори попытку");
-
-                            }
-                            else
-                            {
-                                await botClient.SendTextMessageAsync(message.Chat, "Успешно получили доступ к инстаграму");
-                                isLoading = true;
-                            }
-                        }
-                        catch
-                        {
-                            await botClient.SendTextMessageAsync(message.Chat, $"Не залогинились, повтори попытку ");
-                        }
                         return;
                     }
 
-                    if (account.UserName == string.Empty && account.Password == string.Empty && account.TypeAcc != string.Empty)
+
+                    if (account.UserName == string.Empty && account.Password == string.Empty && isAccaunt )
                     {
                         account.UserName = message.Text;
                         await botClient.SendTextMessageAsync(message.Chat, "Введите свой пароль инстаграмма");
                         return;
                     }
 
-                    if (account.UserName == string.Empty && account.Password == string.Empty && account.TypeAcc == string.Empty)
+
+                    if (account.UserName != string.Empty && account.Password == string.Empty && isAccaunt)
                     {
-                        account.TypeAcc = message.Text;
-                        await botClient.SendTextMessageAsync(message.Chat, "Введите свой логин инстаграмма");
+                        isAccaunt = false;
+
+                        account.Password = message.Text;
+                        await botClient.SendTextMessageAsync(message.Chat, "Успешно сохранили данные для инстаграма");
+
+                        QueryTruncate("Аccount");
+                        nameProfilInstagram = account.TypeAcc;
+
+                        if (account.TypeAcc != null && account.UserName != null && account.Password != null)
+                        {
+                            QueryInsertАccount(account.TypeAcc, account.UserName, account.Password);
+
+                            try
+                            {
+                                _login = null;
+                                var Islogin = LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1)).Result.Succeeded;
+                                if (!Islogin)
+                                {
+                                    await botClient.SendTextMessageAsync(message.Chat, $"Не залогинились, повтори попытку");
+
+                                }
+                                else
+                                {
+                                    await botClient.SendTextMessageAsync(message.Chat, "Успешно получили доступ к инстаграму");
+                                    isLoading = true;
+                                }
+                            }
+                            catch
+                            {
+                                await botClient.SendTextMessageAsync(message.Chat, $"Не залогинились, повтори попытку ");
+                            }
+                        }
+                        else
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, $"Не задана страница инстаграмма");
+                        }
+
+                        
                         return;
                     }
 
-                    if (message.Text.ToLower() == NameAccaunt().ToLower())
+                                      
+
+                    if (message.Text.ToLower() == $"Канал 📸{NameAccaunt()}".ToLower())
                     {
                         await botClient.SendTextMessageAsync(message.Chat, "Введите название канала");
-                        account.UserName = string.Empty;
-                        account.Password = string.Empty;
-                        account.TypeAcc = string.Empty;
 
+                        account.TypeAcc = string.Empty;
+                        isNameChanal = true;
                         isLoading = false;
+
+
+                       
+
                         return;
                     }
 
+                    if (account.TypeAcc == string.Empty && isNameChanal)
+                    {
+                        account.TypeAcc = message.Text.Replace(" ", "") == string.Empty ? "Канал не задан" : message.Text;
+                        await botClient.SendTextMessageAsync(message.Chat, $"Канал {account.TypeAcc} задан"); ;
+                        isNameChanal = false;
+
+
+                        if (account.TypeAcc != null && account.UserName != null && account.Password != null)
+                        {
+                            QueryInsertАccount(account.TypeAcc, account.UserName, account.Password);
+
+                            try
+                            {
+                                _login = null;
+                                var Islogin = LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1)).Result.Succeeded;
+                                if (!Islogin)
+                                {
+                                    await botClient.SendTextMessageAsync(message.Chat, $"Не залогинились, повтори попытку");
+
+                                }
+                                else
+                                {
+                                    await botClient.SendTextMessageAsync(message.Chat, "Успешно получили доступ к инстаграму");
+                                    isLoading = true;
+                                }
+                            }
+                            catch
+                            {
+                                await botClient.SendTextMessageAsync(message.Chat, $"Не залогинились, повтори попытку ");
+                            }
+                        }
+                        else
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, $"Не заданы учетные данные для входа в инстаграмм");
+                        }
+                        return;
+                    }
+
+                    
                     if (message.Text.ToLower() == "Удалить посты".ToLower())
                     {
                         QueryTruncate("Posts");
