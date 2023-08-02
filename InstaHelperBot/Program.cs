@@ -555,7 +555,7 @@ namespace TelegramBotExperiments
 
             var count = 0;
 
-            var timer = new Timer(_ =>
+             var timer = new Timer(async _ =>
             {
                 try
                 {
