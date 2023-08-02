@@ -46,7 +46,7 @@ namespace TelegramBotExperiments
         public List<DictionaryReplace> DictionaryReplaceList => GetDictionaryReplace();
         public string nameProfilInstagram;
 
-        private bool isLoading = false;
+        private static bool isLoading = false;
         private int replaceF = 0;
         private DictionaryReplace _dictionaryReplace = new DictionaryReplace { };
 
