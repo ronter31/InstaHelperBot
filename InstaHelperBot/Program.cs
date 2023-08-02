@@ -545,13 +545,6 @@ namespace TelegramBotExperiments
             {
                 AllowedUpdates = { },
             };
-            await bot.ReceiveAsync(
-                HandleUpdateAsync,
-                HandleErrorAsync,
-                receiverOptions,
-                cancellationToken
-            );
-
             Console.WriteLine("Запущен бот " + bot.GetMeAsync().Result.FirstName);
 
             if (TelegramGroupList.Count != 0)
@@ -619,7 +612,14 @@ namespace TelegramBotExperiments
                     Console.WriteLine(x.Message);
                 }
 
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(300));
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(3000));
+
+            await bot.ReceiveAsync(
+                HandleUpdateAsync,
+                HandleErrorAsync,
+                receiverOptions,
+                cancellationToken
+            );
 
         }
 
