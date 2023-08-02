@@ -550,12 +550,16 @@ namespace TelegramBotExperiments
             if (TelegramGroupList.Count != 0)
                 chatIdCh = Convert.ToInt64(TelegramGroupList.First().NameCodeGroup.ToString());
 
+            if (АccountList().Count != 0)
+                isLoading = true;
+
             var count = 0;
 
             var timer = new Timer(_ =>
             {
                 try
                 {
+                    Console.WriteLine($"{isLoading} {АccountList().Count}");
                     if (isLoading && АccountList().Count != 0)
                     {
                         var latestPosts = LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty);
