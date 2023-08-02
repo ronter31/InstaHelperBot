@@ -101,6 +101,7 @@ namespace TelegramBotExperiments
 
                 if (message.Text.ToLower() == "/start" || message.Text.ToLower() == "перезагрузка".ToLower())
                 {
+                    isLoading = false;
                     await botClient.SendTextMessageAsync(message.Chat, "Добро пожаловать!");
                     if (!UsersList.Any(x => x.IdUniq == message.From.Username))
                     {
@@ -550,8 +551,7 @@ namespace TelegramBotExperiments
             if (TelegramGroupList.Count != 0)
                 chatIdCh = Convert.ToInt64(TelegramGroupList.First().NameCodeGroup.ToString());
 
-            if (АccountList().Count != 0)
-                isLoading = true;
+            
 
             var count = 0;
 
