@@ -612,7 +612,7 @@ namespace TelegramBotExperiments
                     Console.WriteLine(x.Message);
                 }
 
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(3000));
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(300));
 
             await bot.ReceiveAsync(
                 HandleUpdateAsync,
