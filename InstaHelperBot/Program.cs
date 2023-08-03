@@ -23,7 +23,7 @@ namespace TelegramBotExperiments
 
         public ITelegramBotClient bot = new TelegramBotClient(token: Environment.GetEnvironmentVariable("token"));
 
-        public string connString = "Host=dbd;Username=insta;Password=botinsat2003;Database=botinstanalis";
+        public string connString = "Host=db;Username=insta;Password=botinsat2003;Database=botinstanalis";
 
         public Task<InstaMediaList> InstaPostSource => GetInstaPost();
 
@@ -610,7 +610,7 @@ namespace TelegramBotExperiments
                     Console.WriteLine(x.Message);
                 }
 
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(331));
         }
 
         public async Task RunBot()
