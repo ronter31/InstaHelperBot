@@ -23,7 +23,7 @@ namespace TelegramBotExperiments
 
         public ITelegramBotClient bot = new TelegramBotClient(token: Environment.GetEnvironmentVariable("token"));
 
-        public string connString = "Host=db;Username=insta;Password=botinsat2003;Database=botinstanalis";
+        public string connString = "Host=dbd;Username=insta;Password=botinsat2003;Database=botinstanalis";
 
         public Task<InstaMediaList> InstaPostSource => GetInstaPost();
 
@@ -102,7 +102,7 @@ namespace TelegramBotExperiments
 
                 if (message.Text.ToLower() == "/start" || message.Text.ToLower() == "перезагрузка".ToLower())
                 {
-                    isLoading = false;
+                   // isLoading = false;
                     await botClient.SendTextMessageAsync(message.Chat, "Добро пожаловать!");
                     if (!UsersList.Any(x => x.IdUniq == message.From.Username))
                     {
@@ -539,17 +539,33 @@ namespace TelegramBotExperiments
             return userPosts.Value;
         }
 
-        public async void TimerRun()
+      
+
+        public async Task RunBot()
         {
+            Program pr = new Program();
+
             var cts = new CancellationTokenSource();
             var cancellationToken = cts.Token;
+            var receiverOptions = new ReceiverOptions
+            {
+                AllowedUpdates = { },
+            };
+            Console.WriteLine("Запущен бот " + bot.GetMeAsync().Result.FirstName);
 
             if (TelegramGroupList.Count != 0)
                 chatIdCh = Convert.ToInt64(TelegramGroupList.First().NameCodeGroup.ToString());
 
 
+            
+
+
+             
+
+           
+
             var count = 0;
-            var timer = new Timer(async _ =>
+            var timer = new Timer(_ =>
             {
                 try
                 {
@@ -564,7 +580,7 @@ namespace TelegramBotExperiments
                                 SentMessagePostInBot(item, bot, chatIdCh, cancellationToken);
                                 QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
                                 Console.WriteLine(count++);
-                                Thread.Sleep(10000);
+                                //Thread.Sleep(10000);
                             }
                         }
 
@@ -610,27 +626,7 @@ namespace TelegramBotExperiments
                     Console.WriteLine(x.Message);
                 }
 
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(331));
-        }
-
-        public async Task RunBot()
-        {
-            Program pr = new Program();
-
-            var cts = new CancellationTokenSource();
-            var cancellationToken = cts.Token;
-            var receiverOptions = new ReceiverOptions
-            {
-                AllowedUpdates = { },
-            };
-            Console.WriteLine("Запущен бот " + bot.GetMeAsync().Result.FirstName);
-
-            if (TelegramGroupList.Count != 0)
-                chatIdCh = Convert.ToInt64(TelegramGroupList.First().NameCodeGroup.ToString());
-
-
-            await Task.Run(() => pr.TimerRun());
-
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
 
             await bot.ReceiveAsync(
                 HandleUpdateAsync,
@@ -638,6 +634,7 @@ namespace TelegramBotExperiments
                 receiverOptions,
                 cancellationToken
             );
+
 
         }
 
