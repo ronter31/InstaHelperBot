@@ -13,6 +13,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using InstaSharp.Models;
 
 namespace TelegramBotExperiments
 {
@@ -22,7 +23,7 @@ namespace TelegramBotExperiments
 
         public ITelegramBotClient bot = new TelegramBotClient(token: Environment.GetEnvironmentVariable("token"));
 
-        public string connString = "Host=db;Username=insta;Password=botinsat2003;Database=botinstanalis";
+        public string connString = "Host=dbd;Username=insta;Password=botinsat2003;Database=botinstanalis";
 
         public Task<InstaMediaList> InstaPostSource => GetInstaPost();
 
@@ -538,24 +539,17 @@ namespace TelegramBotExperiments
             return userPosts.Value;
         }
 
-        public async Task RunBot()
+        public async void TimerRun()
         {
             var cts = new CancellationTokenSource();
             var cancellationToken = cts.Token;
-            var receiverOptions = new ReceiverOptions
-            {
-                AllowedUpdates = { },
-            };
-            Console.WriteLine("Запущен бот " + bot.GetMeAsync().Result.FirstName);
 
             if (TelegramGroupList.Count != 0)
                 chatIdCh = Convert.ToInt64(TelegramGroupList.First().NameCodeGroup.ToString());
 
-            
 
             var count = 0;
-
-             var timer = new Timer(async _ =>
+            var timer = new Timer(async _ =>
             {
                 try
                 {
@@ -616,7 +610,27 @@ namespace TelegramBotExperiments
                     Console.WriteLine(x.Message);
                 }
 
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(300));
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+        }
+
+        public async Task RunBot()
+        {
+            Program pr = new Program();
+
+            var cts = new CancellationTokenSource();
+            var cancellationToken = cts.Token;
+            var receiverOptions = new ReceiverOptions
+            {
+                AllowedUpdates = { },
+            };
+            Console.WriteLine("Запущен бот " + bot.GetMeAsync().Result.FirstName);
+
+            if (TelegramGroupList.Count != 0)
+                chatIdCh = Convert.ToInt64(TelegramGroupList.First().NameCodeGroup.ToString());
+
+
+            await Task.Run(() => pr.TimerRun());
+
 
             await bot.ReceiveAsync(
                 HandleUpdateAsync,
