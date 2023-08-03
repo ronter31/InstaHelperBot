@@ -539,8 +539,6 @@ namespace TelegramBotExperiments
             return userPosts.Value;
         }
 
-      
-
         public async Task RunBot()
         {
             Program pr = new Program();
@@ -556,16 +554,17 @@ namespace TelegramBotExperiments
             if (TelegramGroupList.Count != 0)
                 chatIdCh = Convert.ToInt64(TelegramGroupList.First().NameCodeGroup.ToString());
 
+             Task.Run(() => 
+             bot.ReceiveAsync(
+                HandleUpdateAsync,
+                HandleErrorAsync,
+                receiverOptions,
+                cancellationToken
+            ));
 
-            
+            await Task.Run(() =>
 
-
-             
-
-           
-
-            var count = 0;
-            var timer = new Timer(_ =>
+              new Timer(_ =>
             {
                 try
                 {
@@ -579,7 +578,7 @@ namespace TelegramBotExperiments
                             {
                                 SentMessagePostInBot(item, bot, chatIdCh, cancellationToken);
                                 QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
-                                Console.WriteLine(count++);
+                                
                                 //Thread.Sleep(10000);
                             }
                         }
@@ -605,7 +604,7 @@ namespace TelegramBotExperiments
                                             {
                                                 SentMessagePostInBot(item, bot, chatIdCh, cancellationToken);
                                                 QueryInsertPost(Convert.ToInt64(item.Pk), "true", "storis");
-                                                Console.WriteLine(count++);
+                                               
                                             }
                                             catch
                                             {
@@ -626,15 +625,9 @@ namespace TelegramBotExperiments
                     Console.WriteLine(x.Message);
                 }
 
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(300));
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(300))
 
-            await bot.ReceiveAsync(
-                HandleUpdateAsync,
-                HandleErrorAsync,
-                receiverOptions,
-                cancellationToken
             );
-
 
         }
 
