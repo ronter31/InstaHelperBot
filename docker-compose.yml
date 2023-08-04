@@ -9,19 +9,19 @@ services:
       context: .
       dockerfile: InstaHelperBot/Dockerfile
     ports:
-      - "80:80"
+      - "81:81"
     networks:
       - deploy-guide-dev
     depends_on:
-      - db
+      - dbb
     environment:
       token: "6518148750:AAFjA3kiJ-fDxaCUrdU1UfOFOUsPWtISLTM"
-  db:
-    container_name: "db"
+  dbb:
+    container_name: "dbb"
     image: postgres:12.2-alpine
     restart: always
     ports:
-      - '5432:5432'
+      - '5433:5433'
     environment:
       POSTGRES_PASSWORD: botinsat2003
       POSTGRES_USER: insta
