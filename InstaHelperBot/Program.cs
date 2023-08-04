@@ -127,7 +127,7 @@ namespace TelegramBotExperiments
                                 pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
                                 pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
 
-                                //Thread.Sleep(10000);
+                                Thread.Sleep(10000);
                             }
                         }
 
