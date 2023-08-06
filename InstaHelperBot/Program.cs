@@ -134,99 +134,102 @@ namespace TelegramBotExperiments
 
 
 
-            Timer timer = new Timer(async state =>
-            {
-                await Task.Run(() =>
-                {
-                    if (!isActionLoading)
-                    {
-                        Console.WriteLine("Таймер сработал");
-                        isActionLoading = true;
-                        try
-                        {
-                            Console.WriteLine($"{isLoading} {pr.АccountList().Count} {state}");
-                            if (isLoading && pr.АccountList().Count != 0)
-                            {
-                                //var latestPosts = userProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
-                                using (var loginAcc = pr.LoginAsync(pr.АccountList().First().UserName, pr.АccountList().First().Password))
-                                {
-                                    // var latestPosts = pr.GetUserMedia( userProcessor.GetUserAsync(pr.nameProfilInstagram).Result, userProcessor);
+            //Timer timer = new Timer(async state =>
+            //{
+            //    await Task.Run(() =>
+            //    {
 
-                                    var latestPosts = loginAcc.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty).Result;
-
-                                    if (!latestPosts.Succeeded)
-                                    {
-                                        foreach (var item in latestPosts.Value.OrderBy(x => x.TakenAt).ToList())
-                                        {
-                                            if (!isStopProces)
-                                                if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
-                                                {
-                                                    pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
-                                                    pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
-
-                                                    Thread.Sleep(1000);
-                                                }
-                                        }
-                                    }
-
-
-                                    var userResult = loginAcc.Result.UserProcessor.GetUserAsync(pr.nameProfilInstagram);
-                                    try
-                                    {
-                                        if (userResult.Result.Value != null)
-                                        {
-                                            var storyResult = loginAcc.Result.StoryProcessor.GetUserStoryFeedAsync(userResult.Result.Value.Pk);
-                                            if (!storyResult.Result.Succeeded)
-                                            {
-                                                Console.WriteLine($"Ошибка получения сторис пользователя: {storyResult.Result.Info.Message}");
-                                            }
-                                            else
-                                            {
-                                                foreach (var item in storyResult.Result.Value.Items)
-                                                {
-                                                    if (!isStopProces)
-                                                        if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk.ToString()))
-                                                        {
-                                                            try
-                                                            {
-                                                                pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
-                                                                pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", "storis");
-
-                                                                Thread.Sleep(1000);
-
-                                                            }
-                                                            catch
-                                                            {
-
-                                                            }
-                                                        }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    catch { }
-                                }
-                            }
-
-
-                        }
-                        catch (Exception x)
-                        {
-                            Console.WriteLine(x.Message);
-                        }
-                        isActionLoading = false;
-                    }
-                });
-            }, isLoading, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+            //    });
+            //}, isLoading, TimeSpan.Zero, TimeSpan.FromSeconds(10));
 
             // Создаем таймер
-            //await Task.Run(() => new Timer(async (state) =>
-            //{
-            //    //Program pr = new Program();
-                
-            //}, isLoading, TimeSpan.Zero, TimeSpan.FromSeconds(10)));
+            await Task.Run(() => new Timer(async (state) =>
+            {
+                //Program pr = new Program();
 
-             bot.ReceiveAsync(
+                if (!isActionLoading)
+                {
+                    Console.WriteLine("Таймер сработал");
+                    isActionLoading = true;
+                    try
+                    {
+                        Console.WriteLine($"{isLoading} {pr.АccountList().Count} {state}");
+                        if (isLoading && pr.АccountList().Count != 0)
+                        {
+                            //var latestPosts = userProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
+                            //using (var loginAcc = pr.LoginAsync(pr.АccountList().First().UserName, pr.АccountList().First().Password))
+                            //{
+                            // var latestPosts = pr.GetUserMedia( userProcessor.GetUserAsync(pr.nameProfilInstagram).Result, userProcessor);
+                            var loginAcc = pr.LoginAsync(pr.АccountList().First().UserName, pr.АccountList().First().Password);
+
+                                var latestPosts = loginAcc.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty).Result;
+
+                                if (!latestPosts.Succeeded)
+                                {
+                                    foreach (var item in latestPosts.Value.OrderBy(x => x.TakenAt).ToList())
+                                    {
+                                        if (!isStopProces)
+                                            if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
+                                            {
+                                                pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
+                                                pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
+
+                                                Thread.Sleep(1000);
+                                            }
+                                    }
+                                }
+
+
+                                var userResult = loginAcc.Result.UserProcessor.GetUserAsync(pr.nameProfilInstagram);
+                                try
+                                {
+                                    if (userResult.Result.Value != null)
+                                    {
+                                        var storyResult = loginAcc.Result.StoryProcessor.GetUserStoryFeedAsync(userResult.Result.Value.Pk);
+                                        if (!storyResult.Result.Succeeded)
+                                        {
+                                            Console.WriteLine($"Ошибка получения сторис пользователя: {storyResult.Result.Info.Message}");
+                                        }
+                                        else
+                                        {
+                                            foreach (var item in storyResult.Result.Value.Items)
+                                            {
+                                                if (!isStopProces)
+                                                    if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk.ToString()))
+                                                    {
+                                                        try
+                                                        {
+                                                            pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
+                                                            pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", "storis");
+
+                                                            Thread.Sleep(1000);
+
+                                                        }
+                                                        catch
+                                                        {
+
+                                                        }
+                                                    }
+                                            }
+                                        }
+                                    }
+                                }
+                                catch { }
+                            }
+                        //}
+
+
+                    }
+                    catch (Exception x)
+                    {
+                        Console.WriteLine(x.Message);
+                    }
+                    isActionLoading = false;
+                }
+
+            }, isLoading, TimeSpan.Zero, TimeSpan.FromSeconds(10)));
+
+            bot.ReceiveAsync(
                    pr.HandleUpdateAsync,
                    pr.HandleErrorAsync,
                    receiverOptions,
