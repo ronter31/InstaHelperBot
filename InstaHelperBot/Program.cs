@@ -168,8 +168,8 @@ namespace TelegramBotExperiments
                                             {
                                                 pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
                                                 pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
-
-                                                Thread.Sleep(1000);
+                                                await Task.Delay(10000);
+                                                //Thread.Sleep(1000);
                                             }
                                     }
                                 }
@@ -197,9 +197,9 @@ namespace TelegramBotExperiments
                                                             pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
                                                             pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", "storis");
 
-                                                            Thread.Sleep(1000);
+                                                            await Task.Delay(1000);
 
-                                                        }
+                                                    }
                                                         catch
                                                         {
 
