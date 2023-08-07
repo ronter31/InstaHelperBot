@@ -178,9 +178,9 @@ namespace TelegramBotExperiments
                                 var userResult = await LoginApi.Result.UserProcessor.GetUserAsync(pr.nameProfilInstagram);
                                 try
                                 {
-                                    if (userResult.Result.Value != null)
+                                    if (userResult.Value != null)
                                     {
-                                        var storyResult = LoginApi.Result.StoryProcessor.GetUserStoryFeedAsync(userResult.Result.Value.Pk);
+                                        var storyResult = LoginApi.Result.StoryProcessor.GetUserStoryFeedAsync(userResult.Value.Pk);
                                         if (!storyResult.Result.Succeeded)
                                         {
                                             Console.WriteLine($"Ошибка получения сторис пользователя: {storyResult.Result.Info.Message}");
