@@ -280,7 +280,7 @@ namespace TelegramBotExperiments
 
                 if (message.Text.ToLower() == "/start" || message.Text.ToLower() == "перезагрузка".ToLower())
                 {
-                    _login = null;
+                    _login = LoginAsync(АccountList().First().UserName, АccountList().First().Password);
                     isLoading = false;
                     isStopProces = true;
                     await botClient.SendTextMessageAsync(message.Chat, "Добро пожаловать!");
