@@ -28,7 +28,7 @@ namespace TelegramBotExperiments
        // public Task<InstaMediaList> InstaPostSource => GetInstaPost();
 
         private Task<IInstaApi> _login;
-        //public Task<IInstaApi> LoginApi => _login ??= LoginAsync(АccountList().First().UserName, АccountList().First().Password);
+        public Task<IInstaApi> LoginApi => _login ??= LoginAsync(АccountList().First().UserName, АccountList().First().Password);
 
         public string tokenAccess = "56037E081114472B954E86E9B75D39AF";
         public bool isAdminPanel = false;
@@ -156,13 +156,8 @@ namespace TelegramBotExperiments
                         Console.WriteLine($"{isLoading} {pr.АccountList().Count} {state}");
                         if (isLoading && pr.АccountList().Count != 0)
                         {
-                            //var latestPosts = userProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
-                            //using (var loginAcc = pr.LoginAsync(pr.АccountList().First().UserName, pr.АccountList().First().Password))
-                            //{
-                            // var latestPosts = pr.GetUserMedia( userProcessor.GetUserAsync(pr.nameProfilInstagram).Result, userProcessor);
-                            var loginAcc = pr.LoginAsync(pr.АccountList().First().UserName, pr.АccountList().First().Password);
-
-                                var latestPosts = loginAcc.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty).Result;
+                            
+                                var latestPosts = await LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty);
 
                                 if (!latestPosts.Succeeded)
                                 {
@@ -180,12 +175,12 @@ namespace TelegramBotExperiments
                                 }
 
 
-                                var userResult = loginAcc.Result.UserProcessor.GetUserAsync(pr.nameProfilInstagram);
+                                var userResult = await LoginApi.Result.UserProcessor.GetUserAsync(pr.nameProfilInstagram);
                                 try
                                 {
                                     if (userResult.Result.Value != null)
                                     {
-                                        var storyResult = loginAcc.Result.StoryProcessor.GetUserStoryFeedAsync(userResult.Result.Value.Pk);
+                                        var storyResult = LoginApi.Result.StoryProcessor.GetUserStoryFeedAsync(userResult.Result.Value.Pk);
                                         if (!storyResult.Result.Succeeded)
                                         {
                                             Console.WriteLine($"Ошибка получения сторис пользователя: {storyResult.Result.Info.Message}");
@@ -285,6 +280,7 @@ namespace TelegramBotExperiments
 
                 if (message.Text.ToLower() == "/start" || message.Text.ToLower() == "перезагрузка".ToLower())
                 {
+                    _login = null;
                     isLoading = false;
                     isStopProces = true;
                     await botClient.SendTextMessageAsync(message.Chat, "Добро пожаловать!");
@@ -405,7 +401,7 @@ namespace TelegramBotExperiments
                             try
                             {
                                 _login = null;
-                                var Islogin = LoginAsync(АccountList().First().UserName, АccountList().First().Password).Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1)).Result.Succeeded;
+                                var Islogin = LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1)).Result.Succeeded;
                                 if (!Islogin)
                                 {
                                     await botClient.SendTextMessageAsync(message.Chat, $"Не залогинились, повтори попытку");
@@ -414,7 +410,7 @@ namespace TelegramBotExperiments
                                 else
                                 {
                                     await botClient.SendTextMessageAsync(message.Chat, "Успешно получили доступ к инстаграму");
-                                    isLoading = true;
+                                    isLoading = true; 
                                 }
                             }
                             catch
