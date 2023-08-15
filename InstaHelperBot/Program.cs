@@ -41,7 +41,12 @@ namespace TelegramBotExperiments
 
         public List<Аccount> АccountList()
         {
-            return АccountList1 is not null ? GetАccount() : new List<Аccount>();
+            return АccountList1 is not null ? GetАccount() : new List<Аccount>() { new Аccount
+                                {
+                                    TypeAcc = "estethica.ru",
+                                    UserName = "coshi_cosmetic",
+                                    Password = "Dima159874",
+                                }  };
         }
 
         public List<DictionaryReplace> DictionaryReplaceList => GetDictionaryReplace();
@@ -157,7 +162,7 @@ namespace TelegramBotExperiments
                         if (isLoading && pr.АccountList().Count != 0)
                         {
                             
-                                var latestPosts = await LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty);
+                                var latestPosts =  LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty).Result;
 
                                 if (!latestPosts.Succeeded)
                                 {
