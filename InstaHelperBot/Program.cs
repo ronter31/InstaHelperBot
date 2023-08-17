@@ -138,7 +138,7 @@ namespace TelegramBotExperiments
 
             var isActionLoading = false;
 
-            var listPost = await GetInstaPostList();
+           
 
 
             //Timer timer = new Timer(async state =>
@@ -270,7 +270,8 @@ namespace TelegramBotExperiments
             Console.WriteLine("Запущен бот ");
 
             //pr.LoginApi.Result.UserProcessor.GetUserAsync(pr.nameProfilInstagram).Result
-
+            var listPost = await pr.GetInstaPostList();
+            Console.WriteLine("posts:" + listPost.Count);
             await Task.Run(() => pr.RunBot());
 
 
@@ -726,9 +727,7 @@ namespace TelegramBotExperiments
 
         public async Task<InstaMediaList> GetInstaPost()
         {
-            var userResult = await LoginApi.Result.UserProcessor.GetUserInfoByUsernameAsync(nameProfilInstagram);            
-            var user = userResult.Value.Username;
-            var mediaResult = await LoginApi.Result.UserProcessor.GetUserMediaAsync(user, PaginationParameters.Empty);
+            var mediaResult = await LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty);
             return mediaResult.Value;
         }
 
