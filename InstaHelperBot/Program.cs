@@ -203,27 +203,27 @@ namespace TelegramBotExperiments
                                         {
                                             foreach (var item in storyResult.Result.Value.Items)
                                             {
-                                                if (!isStopProces)
-                                                    if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk.ToString()))
+                                            if (!isStopProces)
+                                                if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk.ToString()))
+                                                {
+                                                    try
                                                     {
-                                                        try
-                                                        {
-                                                            pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
-                                                            pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", "storis");
+                                                        pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
+                                                        pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", "storis");
 
-                                                            await Task.Delay(1000);
+                                                        await Task.Delay(1000);
 
                                                     }
-                                                        catch
-                                                        {
-
-                                                        }
+                                                    catch
+                                                    {
+                                                        Console.WriteLine("2");
                                                     }
+                                                }
                                             }
                                         }
                                     }
                                 }
-                                catch { }
+                                catch { Console.WriteLine("3"); }
                             }
                         //}
 
@@ -231,6 +231,7 @@ namespace TelegramBotExperiments
                     }
                     catch (Exception x)
                     {
+                        Console.WriteLine("4");
                         Console.WriteLine(x.Message);
                     }
                     isActionLoading = false;
@@ -269,16 +270,9 @@ namespace TelegramBotExperiments
 
             Console.WriteLine("Запущен бот ");
 
-            //pr.LoginApi.Result.UserProcessor.GetUserAsync(pr.nameProfilInstagram).Result
             var listPost = await pr.GetInstaPostList();
             Console.WriteLine("posts:" + listPost.Count);
             await Task.Run(() => pr.RunBot());
-
-
-            
-
-
-            
 
         }
 
