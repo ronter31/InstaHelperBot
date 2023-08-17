@@ -168,7 +168,7 @@ namespace TelegramBotExperiments
 
                             //if (listPost.Count > 0)
                             //{
-                                Console.WriteLine($"До {latestPosts.Value.Count}");
+                                Console.WriteLine($"До {latestPosts.Info}");
                                 //latestPosts.Value.Concat(listPost);
                             //    Console.WriteLine($"После {listPost.Count}");
                             //}
