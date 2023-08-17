@@ -25,7 +25,7 @@ namespace TelegramBotExperiments
 
         public string connString = "Host=dbb;Username=insta;Password=botinsat2003;Database=botinstanalis";
 
-       // public Task<InstaMediaList> InstaPostSource => GetInstaPost();
+        // public Task<InstaMediaList> InstaPostSource => GetInstaPost();
 
         private Task<IInstaApi> _login;
         public Task<IInstaApi> LoginApi => _login ??= LoginAsync(АccountList().First().UserName, АccountList().First().Password);
@@ -43,6 +43,11 @@ namespace TelegramBotExperiments
         {
             return АccountList1 is not null ? GetАccount() : new List<Аccount>();
 
+        }
+
+        public async Task<InstaMediaList> GetInstaPostList() 
+        { 
+            return await GetInstaPost(); 
         }
 
         public List<DictionaryReplace> DictionaryReplaceList => GetDictionaryReplace();
@@ -133,6 +138,7 @@ namespace TelegramBotExperiments
 
             var isActionLoading = false;
 
+            var listPost = await GetInstaPostList();
 
 
             //Timer timer = new Timer(async state =>
@@ -157,10 +163,17 @@ namespace TelegramBotExperiments
                         Console.WriteLine($"{isLoading} {pr.АccountList().Count} {state}");
                         if (isLoading && pr.АccountList().Count != 0)
                         {
-                            
-                                var latestPosts =  LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty).Result;
+                           
+                               var  latestPosts =  await LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty);
 
-                                if (!latestPosts.Succeeded)
+                            if (listPost.Count > 0)
+                            {
+                                Console.WriteLine($"До {latestPosts.Value.Count}");
+                                latestPosts.Value.Concat(listPost);
+                                Console.WriteLine($"После {latestPosts.Value.Count}");
+                            }
+
+                            if (!latestPosts.Succeeded)
                                 {
                                     foreach (var item in latestPosts.Value.OrderBy(x => x.TakenAt).ToList())
                                     {
@@ -711,16 +724,13 @@ namespace TelegramBotExperiments
         }
 
 
-        //public async Task<InstaMediaList> GetInstaPost()
-        //{
-        //    var userResult = await LoginApi.Result.UserProcessor.GetUserInfoByUsernameAsync(nameProfilInstagram);
-
-        //    Console.WriteLine("Подключились к каналу");
-
-        //    var user = userResult.Value.Username;
-        //    var mediaResult = await LoginApi.Result.UserProcessor.GetUserMediaAsync(user, PaginationParameters.Empty);
-        //    return mediaResult.Value;
-        //}
+        public async Task<InstaMediaList> GetInstaPost()
+        {
+            var userResult = await LoginApi.Result.UserProcessor.GetUserInfoByUsernameAsync(nameProfilInstagram);            
+            var user = userResult.Value.Username;
+            var mediaResult = await LoginApi.Result.UserProcessor.GetUserMediaAsync(user, PaginationParameters.Empty);
+            return mediaResult.Value;
+        }
 
         //async Task<List<InstaMedia>> GetLatestUserPosts(string username)
         //{
