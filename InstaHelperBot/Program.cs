@@ -166,12 +166,12 @@ namespace TelegramBotExperiments
                            
                                var  latestPosts =  await LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty);
 
-                            if (listPost.Count > 0)
-                            {
+                            //if (listPost.Count > 0)
+                            //{
                                 Console.WriteLine($"До {latestPosts.Value.Count}");
                                 //latestPosts.Value.Concat(listPost);
-                                Console.WriteLine($"После {listPost.Count}");
-                            }
+                            //    Console.WriteLine($"После {listPost.Count}");
+                            //}
 
                             if (!latestPosts.Succeeded)
                                 {
