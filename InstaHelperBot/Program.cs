@@ -13,7 +13,6 @@ using Telegram.Bot.Types.ReplyMarkups;
 using System.Text;
 using System.Text.RegularExpressions;
 using InstagramApiSharp.API.Processors;
-using System.Diagnostics.Metrics;
 
 namespace TelegramBotExperiments
 {
@@ -139,16 +138,6 @@ namespace TelegramBotExperiments
             var isActionLoading = false;
 
            
-
-
-            //Timer timer = new Timer(async state =>
-            //{
-            //    await Task.Run(() =>
-            //    {
-
-            //    });
-            //}, isLoading, TimeSpan.Zero, TimeSpan.FromSeconds(10));
-
             // Создаем таймер
             await Task.Run(() => new Timer(async (state) =>
             {
@@ -163,8 +152,8 @@ namespace TelegramBotExperiments
                         Console.WriteLine($"{isLoading} {pr.АccountList().Count} {state}");
                         if (isLoading && pr.АccountList().Count != 0)
                         {
-                           
-                               var  latestPosts =  await LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty);
+                        
+                            var  latestPosts =  await LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty);
 
                             //if (listPost.Count > 0)
                             //{
@@ -270,8 +259,6 @@ namespace TelegramBotExperiments
 
             Console.WriteLine("Запущен бот ");
 
-            var listPost = await pr.GetInstaPostList();
-            Console.WriteLine("posts:" + listPost.Count);
             await Task.Run(() => pr.RunBot());
 
         }
