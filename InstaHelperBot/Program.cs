@@ -272,8 +272,12 @@ namespace TelegramBotExperiments
 
             if (pr.LoginApi.Result != null)
             {
-                var v1 = await pr.LoginApi.Result.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
-                Console.WriteLine(_mediaList.Value.Count);
+                try
+                {
+                    _mediaList = await pr.LoginApi.Result.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
+                    Console.WriteLine(_mediaList.Value.Count);
+                }
+                catch { }
                 await Task.Delay(30000);
             }
             await Task.Run(() => pr.RunBot());
