@@ -41,12 +41,8 @@ namespace TelegramBotExperiments
 
         public List<Аccount> АccountList()
         {
-            return АccountList1 is not null ? GetАccount() : new List<Аccount>() { new Аccount
-                                {
-                                    TypeAcc = "estethica.ru",
-                                    UserName = "coshi_cosmetic",
-                                    Password = "Dima159874",
-                                }  };
+            return АccountList1 is not null ? GetАccount() : new List<Аccount>();
+
         }
 
         public List<DictionaryReplace> DictionaryReplaceList => GetDictionaryReplace();
