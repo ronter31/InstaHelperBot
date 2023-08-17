@@ -280,7 +280,11 @@ namespace TelegramBotExperiments
 
                 if (message.Text.ToLower() == "/start" || message.Text.ToLower() == "перезагрузка".ToLower())
                 {
-                    _login = LoginAsync(АccountList().First().UserName, АccountList().First().Password);
+                    try
+                    {
+                        _login = LoginAsync(АccountList().First().UserName, АccountList().First().Password);
+                    }
+                    catch { }
                     isLoading = false;
                     isStopProces = true;
                     await botClient.SendTextMessageAsync(message.Chat, "Добро пожаловать!");
@@ -394,7 +398,7 @@ namespace TelegramBotExperiments
                         QueryTruncate("Аccount");
                         nameProfilInstagram = account.TypeAcc;
 
-                        if (account.TypeAcc != null && account.UserName != null && account.Password != null)
+                        if ((account.TypeAcc != null|| NameAccaunt() != "Не задан аккаунт инстаграма") && account.UserName != null && account.Password != null)
                         {
                             QueryInsertАccount(account.TypeAcc, account.UserName, account.Password);
 
