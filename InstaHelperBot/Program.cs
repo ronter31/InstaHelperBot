@@ -40,7 +40,7 @@ namespace TelegramBotExperiments
 
         public List<Аccount> АccountList()
         {
-            return АccountList1 is not null && АccountList1.Count !=0 ? GetАccount() : new List<Аccount>();
+            return АccountList1 is not null ? GetАccount() : new List<Аccount>();
 
         }
 
@@ -270,9 +270,12 @@ namespace TelegramBotExperiments
 
             Console.WriteLine("Запущен бот ");
 
-            _mediaList = await pr.LoginApi.Result.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
-            Console.WriteLine(_mediaList.Value.Count);
-            await Task.Run(() => pr.RunBot());
+            if (pr.LoginApi.Result != null)
+            {
+                var v1 = await pr.LoginApi.Result.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
+                Console.WriteLine(_mediaList.Value.Count);
+            }
+           // await Task.Run(() => pr.RunBot());
 
         }
 
