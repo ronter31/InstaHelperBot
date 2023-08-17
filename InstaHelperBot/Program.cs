@@ -27,7 +27,7 @@ namespace TelegramBotExperiments
         // public Task<InstaMediaList> InstaPostSource => GetInstaPost();
 
         private Task<IInstaApi> _login;
-        public Task<IInstaApi> LoginApi => _login ??= LoginAsync(АccountList().First().UserName, АccountList().First().Password);
+        public Task<IInstaApi> LoginApi => _login ??= LoginAsync();
 
         public string tokenAccess = "56037E081114472B954E86E9B75D39AF";
         public bool isAdminPanel = false;
@@ -40,7 +40,7 @@ namespace TelegramBotExperiments
 
         public List<Аccount> АccountList()
         {
-            return АccountList1 is not null ? GetАccount() : new List<Аccount>();
+            return АccountList1 is not null && АccountList1.Count !=0 ? GetАccount() : new List<Аccount>();
 
         }
 
@@ -147,20 +147,30 @@ namespace TelegramBotExperiments
                 {
                     Console.WriteLine("Таймер сработал");
                     isActionLoading = true;
-                    //try
-                    //{
+                    try
+                    {
                         Console.WriteLine($"{isLoading} {pr.АccountList().Count} {state}");
                         if (isLoading && pr.АccountList().Count != 0)
                         {
-                        
-                            var  latestPosts =  await LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty);
 
-                            //if (listPost.Count > 0)
-                            //{
-                                Console.WriteLine($"До {latestPosts.Info}");
-                                //latestPosts.Value.Concat(listPost);
-                            //    Console.WriteLine($"После {listPost.Count}");
-                            //}
+
+                        if (!_mediaList.Succeeded)
+                        {
+                            foreach (var item in _mediaList.Value.OrderBy(x => x.TakenAt).ToList())
+                            {
+                                if (!isStopProces)
+                                    if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
+                                    {
+                                        pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
+                                        pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
+                                        await Task.Delay(10000);
+                                        //Thread.Sleep(1000);
+                                    }
+                            }
+                        }
+
+                        var  latestPosts =  await LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty);
+
 
                             if (!latestPosts.Succeeded)
                                 {
@@ -217,12 +227,12 @@ namespace TelegramBotExperiments
                         //}
 
 
-                    //}
-                    //catch (Exception x)
-                    //{
-                    //    Console.WriteLine("4");
-                    //    Console.WriteLine(x.Message);
-                    //}
+                    }
+                    catch (Exception x)
+                    {
+                        Console.WriteLine("4");
+                        Console.WriteLine(x.Message);
+                    }
                     isActionLoading = false;
                 }
 
@@ -250,6 +260,7 @@ namespace TelegramBotExperiments
 
         public static Program pr = new Program();
 
+        private static IResult<InstaMediaList> _mediaList { get; set; }
         public async static Task Main(string[] args)
         {
             
@@ -259,6 +270,8 @@ namespace TelegramBotExperiments
 
             Console.WriteLine("Запущен бот ");
 
+            _mediaList = await pr.LoginApi.Result.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
+            Console.WriteLine(_mediaList.Value.Count);
             await Task.Run(() => pr.RunBot());
 
         }
@@ -278,7 +291,7 @@ namespace TelegramBotExperiments
                 {
                     try
                     {
-                        _login = LoginAsync(АccountList().First().UserName, АccountList().First().Password);
+                        _login = LoginAsync();
                     }
                     catch { }
                     isLoading = false;
@@ -394,7 +407,7 @@ namespace TelegramBotExperiments
                         QueryTruncate("Аccount");
                         nameProfilInstagram = account.TypeAcc;
 
-                        if ((account.TypeAcc != null|| NameAccaunt() != "Не задан аккаунт инстаграма") && account.UserName != null && account.Password != null)
+                        if ((account.TypeAcc != null || NameAccaunt() != "Не задан аккаунт инстаграма") && account.UserName != null && account.Password != null)
                         {
                             QueryInsertАccount(account.TypeAcc, account.UserName, account.Password);
 
@@ -457,7 +470,7 @@ namespace TelegramBotExperiments
                             try
                             {
                                 _login = null;
-                                var Islogin = LoginAsync(АccountList().First().UserName, АccountList().First().Password).Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1)).Result.Succeeded;
+                                var Islogin = LoginAsync().Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1)).Result.Succeeded;
                                 if (!Islogin)
                                 {
                                     await botClient.SendTextMessageAsync(message.Chat, $"Не залогинились, повтори попытку");
@@ -689,20 +702,26 @@ namespace TelegramBotExperiments
             Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(exception));
         }
 
-        public async Task<IInstaApi> LoginAsync(string user, string password)
+        public async Task<IInstaApi> LoginAsync()
         {
-            var userSession = new UserSessionData
+            if (АccountList().Count > 0)
             {
-                UserName = user,
-                Password = password
-            };
+                var user = АccountList().First().UserName;
+                var password = АccountList().First().Password;
+                var userSession = new UserSessionData
+                {
+                    UserName = user,
+                    Password = password
+                };
 
-            var api = InstaApiBuilder.CreateBuilder()
-                .SetUser(userSession)
-                .Build();
-            await api.LoginAsync();
-            
-            return api;
+                var api = InstaApiBuilder.CreateBuilder()
+                    .SetUser(userSession)
+                    .Build();
+                await api.LoginAsync();
+
+                return api;
+            }
+            return null;
         }
 
 
