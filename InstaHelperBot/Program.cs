@@ -158,8 +158,8 @@ namespace TelegramBotExperiments
                 {
                     Console.WriteLine("Таймер сработал");
                     isActionLoading = true;
-                    try
-                    {
+                    //try
+                    //{
                         Console.WriteLine($"{isLoading} {pr.АccountList().Count} {state}");
                         if (isLoading && pr.АccountList().Count != 0)
                         {
@@ -228,12 +228,12 @@ namespace TelegramBotExperiments
                         //}
 
 
-                    }
-                    catch (Exception x)
-                    {
-                        Console.WriteLine("4");
-                        Console.WriteLine(x.Message);
-                    }
+                    //}
+                    //catch (Exception x)
+                    //{
+                    //    Console.WriteLine("4");
+                    //    Console.WriteLine(x.Message);
+                    //}
                     isActionLoading = false;
                 }
 
