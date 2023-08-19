@@ -162,42 +162,21 @@ namespace TelegramBotExperiments
                         if (isLoading && pr.АccountList().Count != 0)
                         {
 
-
-                            //await InstaApi.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
-
-                            if (!_mediaList.Succeeded)
-                            {
-                                foreach (var item in _mediaList.Value.OrderBy(x => x.TakenAt).ToList())
-                                {
-                                    if (!isStopProces)
-                                        if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
-                                        {
-                                            pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
-                                            pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
-                                            await Task.Delay(1000);
-                                            //Thread.Sleep(1000);
-                                        }
-                                }
-                            }
-
-
-                            var  latestPosts =  await InstaApi.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty);
-
-
-                            if (!latestPosts.Succeeded)
-                                {
-                                    foreach (var item in latestPosts.Value.OrderBy(x => x.TakenAt).ToList())
+                                var  latestPosts =  await InstaApi.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty);
+                                await Task.Delay(10000);
+                            Console.WriteLine(latestPosts.Value.Count);
+                                 foreach (var item in latestPosts.Value.OrderBy(x => x.TakenAt).ToList())
                                     {
                                         if (!isStopProces)
                                             if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
                                             {
                                                 pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
                                                 pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
-                                                await Task.Delay(1000);
+                                                await Task.Delay(10000);
                                                 //Thread.Sleep(1000);
                                             }
                                     }
-                                }
+                                
 
 
                                 var userResult = await InstaApi.UserProcessor.GetUserAsync(pr.nameProfilInstagram);
@@ -248,7 +227,7 @@ namespace TelegramBotExperiments
                     isActionLoading = false;
                 }
 
-            }, isLoading, TimeSpan.Zero, TimeSpan.FromSeconds(400)));
+            }, isLoading, TimeSpan.Zero, TimeSpan.FromSeconds(300)));
 
             bot.ReceiveAsync(
                    pr.HandleUpdateAsync,
@@ -284,12 +263,12 @@ namespace TelegramBotExperiments
 
             await Task.Run(() => getloginAsync());
 
-            _mediaList = await InstaApi.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
-            try
-            {
-                Console.WriteLine(_mediaList.Value.Count);
-            }
-            catch { Console.WriteLine("not media"); }
+            //_mediaList = await InstaApi.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
+            //try
+            //{
+            //    Console.WriteLine(_mediaList.Value.Count);
+            //}
+            //catch { Console.WriteLine("not media"); }
             await Task.Run(() => pr.RunBot());
 
         }
@@ -302,16 +281,11 @@ namespace TelegramBotExperiments
             var user = "";
             var password = "";
 
-            if (pr.АccountList().Count != 0)
-            {
-                 user = pr.АccountList().First().UserName;
-                 password = pr.АccountList().First().Password;
-            }
-            else
-            {
+            
+           
                 user = "gogager";
                 password = "Dima159874";
-            }
+            
 
             var userSession = new UserSessionData
             {
