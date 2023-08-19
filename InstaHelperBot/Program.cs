@@ -34,7 +34,7 @@ namespace TelegramBotExperiments
         // public Task<InstaMediaList> InstaPostSource => GetInstaPost();
 
         private Task<IInstaApi> _login;
-        public Task<IInstaApi> LoginApi => _login ??= LoginAsync();
+      //  public Task<IInstaApi> LoginApi => _login ??= LoginAsync();
 
         public string tokenAccess = "56037E081114472B954E86E9B75D39AF";
         public bool isAdminPanel = false;
@@ -578,7 +578,7 @@ namespace TelegramBotExperiments
                             try
                             {
                                 _login = null;
-                                var Islogin = LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1)).Result.Succeeded;
+                                var Islogin = InstaApi.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1)).Result.Succeeded;
                                 if (!Islogin)
                                 {
                                     await botClient.SendTextMessageAsync(message.Chat, $"Не залогинились, повтори попытку");
