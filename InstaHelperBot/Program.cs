@@ -13,13 +13,9 @@ using Telegram.Bot.Types.ReplyMarkups;
 using System.Text;
 using System.Text.RegularExpressions;
 using InstagramApiSharp.API.Processors;
-using InstagramApiSharp.Classes.Android.DeviceInfo;
 using InstagramApiSharp.Logger;
 using InstagramApiSharp.Classes.SessionHandlers;
-using static System.Net.Mime.MediaTypeNames;
 using System.Diagnostics;
-using System.Drawing;
-using InstaSharp.Models;
 
 namespace TelegramBotExperiments
 {
@@ -79,13 +75,6 @@ namespace TelegramBotExperiments
 
         static readonly ManualResetEventSlim ExitEvent = new ManualResetEventSlim();
 
-        //   static IUserProcessor userProcessor = pr.InstaApi.UserProcessor;
-         //IUserProcessor _userProcessor;
-         //IUserProcessor userProcessor =>  InstaApi.UserProcessor;
-
-        
-       //  IResult<InstaUser> instaUser => userProcessor.GetUserAsync(pr.nameProfilInstagram).Result;
-
         public  async Task<IResult<InstaMediaList>> GetUserMediaAsync(
              PaginationParameters paginationParameters, IResult<InstaUser> instaUser, IUserProcessor userProcessor)
         {
@@ -98,8 +87,6 @@ namespace TelegramBotExperiments
         }
 
        
-
-
         public  List<InstaMedia> GetUserMedia( IResult<InstaUser> instaUser, IUserProcessor userProcessor)
         {
             bool isAction = true;
@@ -150,7 +137,6 @@ namespace TelegramBotExperiments
             // Создаем таймер
             await Task.Run(() => new Timer(async (state) =>
             {
-                //Program pr = new Program();
 
                 if (!isActionLoading)
                 {
@@ -162,9 +148,19 @@ namespace TelegramBotExperiments
                         if (isLoading && pr.АccountList().Count != 0)
                         {
 
-                                var  latestPosts =  await InstaApi.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty);
-                                await Task.Delay(10000);
-                            Console.WriteLine(latestPosts.Value.Count);
+                            foreach (var item in _mediaList.Value.OrderBy(x => x.TakenAt).ToList())
+                            {
+                                if (!isStopProces)
+                                    if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
+                                    {
+                                        pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
+                                        pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
+                                        await Task.Delay(20000);
+                                    }
+                            }
+
+                            var  latestPosts =  await InstaApi.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty);
+                                
                                  foreach (var item in latestPosts.Value.OrderBy(x => x.TakenAt).ToList())
                                     {
                                         if (!isStopProces)
@@ -173,13 +169,12 @@ namespace TelegramBotExperiments
                                                 pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
                                                 pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
                                                 await Task.Delay(10000);
-                                                //Thread.Sleep(1000);
                                             }
                                     }
                                 
 
 
-                                var userResult = await InstaApi.UserProcessor.GetUserAsync(pr.nameProfilInstagram);
+                             var userResult = await InstaApi.UserProcessor.GetUserAsync(pr.nameProfilInstagram);
                                 try
                                 {
                                     if (userResult.Value != null)
@@ -227,7 +222,7 @@ namespace TelegramBotExperiments
                     isActionLoading = false;
                 }
 
-            }, isLoading, TimeSpan.Zero, TimeSpan.FromSeconds(300)));
+            }, isLoading, TimeSpan.Zero, TimeSpan.FromSeconds(400)));
 
             bot.ReceiveAsync(
                    pr.HandleUpdateAsync,
@@ -263,12 +258,13 @@ namespace TelegramBotExperiments
 
             await Task.Run(() => getloginAsync());
 
-            //_mediaList = await InstaApi.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
-            //try
-            //{
-            //    Console.WriteLine(_mediaList.Value.Count);
-            //}
-            //catch { Console.WriteLine("not media"); }
+            _mediaList = await InstaApi.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
+            try
+            {
+                Console.WriteLine(_mediaList.Value.Count);
+            }
+            catch { Console.WriteLine("not media"); }
+
             await Task.Run(() => pr.RunBot());
 
         }
@@ -281,10 +277,16 @@ namespace TelegramBotExperiments
             var user = "";
             var password = "";
 
-            
-           
+            if (!pr.АccountList().Any())
+            {
                 user = "gogager";
                 password = "Dima159874";
+            }
+            else
+            {
+                user = pr.АccountList().First().UserName;
+                password = pr.АccountList().First().Password;
+            }
             
 
             var userSession = new UserSessionData
