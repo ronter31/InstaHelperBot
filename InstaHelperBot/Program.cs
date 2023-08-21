@@ -277,16 +277,16 @@ namespace TelegramBotExperiments
             var user = "";
             var password = "";
 
-            if (!pr.АccountList().Any())
-            {
-                user = "gogager";
+            //if (!pr.АccountList().Any())
+            //{
+                user = "gogager1";
                 password = "Dima159874";
-            }
-            else
-            {
-                user = pr.АccountList().First().UserName;
-                password = pr.АccountList().First().Password;
-            }
+            //}
+            //else
+            //{
+            //    user = pr.АccountList().First().UserName;
+            //    password = pr.АccountList().First().Password;
+            //}
             
 
             var userSession = new UserSessionData
