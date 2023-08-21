@@ -279,7 +279,7 @@ namespace TelegramBotExperiments
 
             //if (!pr.АccountList().Any())
             //{
-                user = "gogager1";
+                user = "gogager";
                 password = "Dima159874";
             //}
             //else
