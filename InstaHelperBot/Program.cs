@@ -277,17 +277,17 @@ namespace TelegramBotExperiments
             var user = "";
             var password = "";
 
-            //if (!pr.АccountList().Any())
-            //{
+            if (!pr.АccountList().Any())
+            {
                 user = "gogager";
                 password = "Dima159874";
-            //}
-            //else
-            //{
-            //    user = pr.АccountList().First().UserName;
-            //    password = pr.АccountList().First().Password;
-            //}
-            
+            }
+            else
+            {
+                user = pr.АccountList().First().UserName;
+                password = pr.АccountList().First().Password;
+            }
+
 
             var userSession = new UserSessionData
             {
@@ -356,6 +356,24 @@ namespace TelegramBotExperiments
                 if (!InstaApi.IsUserAuthenticated)
                     return;
                 InstaApi.SessionHandler.Save();
+
+                //try
+                //{
+                //    // load session file if exists
+                //    if (System.IO.File.Exists("state.bin"))
+                //    {
+                //        Console.WriteLine("Loading state from file");
+                //        using (var fs = System.IO.File.OpenRead("state.bin"))
+                //        {
+                //            InstaApi.LoadStateDataFromStream(fs);
+                //        }
+                //    }
+                //}
+                //catch (Exception e)
+                //{
+                //    Console.WriteLine(e);
+                //}
+
             }
 
         }
