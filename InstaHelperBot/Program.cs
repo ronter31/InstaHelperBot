@@ -17,6 +17,9 @@ using InstagramApiSharp.Logger;
 using InstagramApiSharp.Classes.SessionHandlers;
 using System.Diagnostics;
 
+using static InstaHelperBot.MultipleHelper;
+using InstaHelperBot;
+
 namespace TelegramBotExperiments
 {
 
@@ -27,10 +30,8 @@ namespace TelegramBotExperiments
 
         public string connString = "Host=dbb;Username=insta;Password=botinsat2003;Database=botinstanalis";
 
-        // public Task<InstaMediaList> InstaPostSource => GetInstaPost();
-
         private Task<IInstaApi> _login;
-      //  public Task<IInstaApi> LoginApi => _login ??= LoginAsync();
+        public Task<IInstaApi> LoginApi => _login ??= LoginAsync(АccountList().First().UserName, АccountList().First().Password);
 
         public string tokenAccess = "56037E081114472B954E86E9B75D39AF";
         public bool isAdminPanel = false;
@@ -50,6 +51,22 @@ namespace TelegramBotExperiments
         public async Task<InstaMediaList> GetInstaPostList() 
         { 
             return await GetInstaPost(); 
+        }
+
+        public async Task<IInstaApi> LoginAsync(string user, string password)
+        {
+            var userSession = new UserSessionData
+            {
+                UserName = user,
+                Password = password
+            };
+
+            var api = InstaApiBuilder.CreateBuilder()
+                .SetUser(userSession)
+                .Build();
+            await api.LoginAsync();
+
+            return api;
         }
 
         public List<DictionaryReplace> DictionaryReplaceList => GetDictionaryReplace();
@@ -147,39 +164,46 @@ namespace TelegramBotExperiments
                         Console.WriteLine($"{isLoading} {pr.АccountList().Count} {state}");
                         if (isLoading && pr.АccountList().Count != 0)
                         {
-
-                            foreach (var item in _mediaList.Value.OrderBy(x => x.TakenAt).ToList())
+                            try
                             {
-                                if (!isStopProces)
-                                    if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
-                                    {
-                                        pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
-                                        pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
-                                        await Task.Delay(20000);
-                                    }
+                                foreach (var item in _mediaList.Value.OrderBy(x => x.TakenAt).ToList())
+                                {
+                                    if (!isStopProces)
+                                        if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
+                                        {
+                                            pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
+                                            pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
+                                            await Task.Delay(20000);
+                                        }
+                                }
                             }
-
-                            var  latestPosts =  await InstaApi.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.Empty);
+                            catch { }
+                            try
+                            {
                                 
-                                 foreach (var item in latestPosts.Value.OrderBy(x => x.TakenAt).ToList())
-                                    {
-                                        if (!isStopProces)
-                                            if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
-                                            {
-                                                pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
-                                                pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
-                                                await Task.Delay(10000);
-                                            }
-                                    }
+                                var latestPosts = await LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1));
+                                  var c1 = latestPosts.Value;
+                                foreach (var item in latestPosts.Value.OrderBy(x => x.TakenAt).ToList())
+                                {
+                                    if (!isStopProces)
+                                        if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
+                                        {
+                                            pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
+                                            pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
+                                            await Task.Delay(10000);
+                                        }
+                                }
+                            }
+                            catch { Console.WriteLine("41"); }
                                 
 
 
-                             var userResult = await InstaApi.UserProcessor.GetUserAsync(pr.nameProfilInstagram);
+                             var userResult = await LoginApi.Result.UserProcessor.GetUserAsync(pr.nameProfilInstagram);
                                 try
                                 {
                                     if (userResult.Value != null)
                                     {
-                                        var storyResult = InstaApi.StoryProcessor.GetUserStoryFeedAsync(userResult.Value.Pk);
+                                        var storyResult = LoginApi.Result.StoryProcessor.GetUserStoryFeedAsync(userResult.Value.Pk);
                                         if (!storyResult.Result.Succeeded)
                                         {
                                             Console.WriteLine($"Ошибка получения сторис пользователя: {storyResult.Result.Info.Message}");
@@ -222,7 +246,7 @@ namespace TelegramBotExperiments
                     isActionLoading = false;
                 }
 
-            }, isLoading, TimeSpan.Zero, TimeSpan.FromSeconds(400)));
+            }, isLoading, TimeSpan.Zero, TimeSpan.FromSeconds(20)));
 
             bot.ReceiveAsync(
                    pr.HandleUpdateAsync,
@@ -249,132 +273,176 @@ namespace TelegramBotExperiments
         private static IResult<InstaMediaList> _mediaList { get; set; }
         public async static Task Main(string[] args)
         {
-            
+
             Migration migration = new(pr.connString);
 
             pr.nameProfilInstagram = pr.АccountList().Count > 0 ? pr.АccountList().First().TypeAcc : string.Empty;
 
             Console.WriteLine("Запущен бот ");
 
+            LoadSessions();
+
+            
             await Task.Run(() => getloginAsync());
-
-            _mediaList = await InstaApi.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
-            try
+            
+            foreach (var item in ApiList)
             {
-                Console.WriteLine(_mediaList.Value.Count);
+                try
+                {
+                    _mediaList = await item.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
+                    InstaApi = item;
+                    break;
+                }
+                catch
+                {
+                    Console.WriteLine("not item");
+                }
             }
-            catch { Console.WriteLine("not media"); }
 
+
+            
+
+                if (_mediaList.Value is not null)
+                    Console.WriteLine(_mediaList.Value.Count);
+                else
+                    Console.WriteLine("0");
+
+            
+            InstaApi.LogoutAsync();
             await Task.Run(() => pr.RunBot());
 
         }
 
         private static IInstaApi InstaApi;
 
+        //public async static Task CreateAccInsta()
+        //{
+
+        //    var api = InstaApiBuilder.CreateBuilder().Build();
+
+        //    var email = "ramtinak@live.com";
+        //    var username = "gogager3";
+        //    var password = "Dima159874";
+
+        //    var checkEmail = await api.CheckEmailAsync(email);
+
+        //    if (checkEmail.Succeeded && checkEmail.Value.Available)
+        //    {
+        //        var create = await api.CreateNewAccountAsync(username, password, email);
+        //    }
+
+        //}
+
+
         public async static Task getloginAsync()
         {
-            const string StateFile = "state.bin";
-            var user = "";
-            var password = "";
+            var username = "gogager5";
+            var api = BuildApi(username, "Dima159874");
+            var sessionHandler = new FileSessionHandler { FilePath = username.GetAccountPath(), InstaApi = api };
 
-            if (!pr.АccountList().Any())
+            api.SessionHandler = sessionHandler;
+            var loginResult = await api.LoginAsync();
+            if (loginResult.Succeeded)
             {
-                user = "gogager";
-                password = "Dima159874";
+                LoggedInUsers.Add(api.GetLoggedUser().LoggedInUser.UserName.ToLower());
+                ApiList.Clear();
+                ApiList.Add(api);
+                api.SessionHandler.Save();
             }
             else
             {
-                user = pr.АccountList().First().UserName;
-                password = pr.АccountList().First().Password;
+                Console.WriteLine($"Error:\r\n{loginResult.Info.Message}\r\n\r\n" +
+                    $"Please check ChallengeExample for handling two factor or challenge...");
             }
 
+            InstaApi = api;
 
-            var userSession = new UserSessionData
-            {
-                UserName = user,
-                Password = password
-            };
 
-             InstaApi = InstaApiBuilder.CreateBuilder()
-                .SetUser(userSession)
-                .UseLogger(new DebugLogger(LogLevel.All))
-                .SetRequestDelay(RequestDelay.FromSeconds(0, 1))
-                // Session handler, set a file path to save/load your state/session data
-                .SetSessionHandler(new FileSessionHandler() { FilePath = StateFile })
-                .Build();
-           
-            //Load session
-            LoadSession();
-            if (!InstaApi.IsUserAuthenticated)
-            {
-                // Call this function before calling LoginAsync
-                await InstaApi.SendRequestsBeforeLoginAsync();
-                // wait 5 seconds
-                await Task.Delay(5000);
-                var logInResult = await InstaApi.LoginAsync();
-                Debug.WriteLine(logInResult.Value);
-                if (logInResult.Succeeded)
-                {
-                    // Call this function after a successful login
-                    await InstaApi.SendRequestsAfterLoginAsync();
+            //const string StateFile = "state3.bin";
+            //var user = "";
+            //var password = "";
 
-                    // Save session 
-                    SaveSession();
-                }
-                else
-                {
-                    if (logInResult.Value == InstaLoginResult.ChallengeRequired)
-                    {
-                        var challenge = await InstaApi.GetChallengeRequireVerifyMethodAsync();
-                        if (challenge.Succeeded)
-                        {
-                            Console.WriteLine("4");
-                        }
-                        else
-                            Console.WriteLine("3");
-                    }
-                    else if (logInResult.Value == InstaLoginResult.TwoFactorRequired)
-                    {
-                        Console.WriteLine("2");
-                    }
-                }
-            }
-            else
-            {
-                Console.WriteLine("1");
-            }
+            ////if (!pr.АccountList().Any())
+            ////{
+            //user = "gogager3";
+            //password = "Dima159874";
+            ////}
+            ////else
+            ////{
+            ////    user = pr.АccountList().First().UserName;
+            ////    password = pr.АccountList().First().Password;
+            ////}
 
-            void LoadSession()
-            {
-                InstaApi?.SessionHandler?.Load();
 
-            }
-            void SaveSession()
-            {
-                if (InstaApi == null)
-                    return;
-                if (!InstaApi.IsUserAuthenticated)
-                    return;
-                InstaApi.SessionHandler.Save();
+            //var userSession = new UserSessionData
+            //{
+            //    UserName = user,
+            //    Password = password
+            //};
 
-                //try
-                //{
-                //    // load session file if exists
-                //    if (System.IO.File.Exists("state.bin"))
-                //    {
-                //        Console.WriteLine("Loading state from file");
-                //        using (var fs = System.IO.File.OpenRead("state.bin"))
-                //        {
-                //            InstaApi.LoadStateDataFromStream(fs);
-                //        }
-                //    }
-                //}
-                //catch (Exception e)
-                //{
-                //    Console.WriteLine(e);
-                //}
+            //InstaApi = InstaApiBuilder.CreateBuilder()
+            //   .SetUser(userSession)
+            //   .UseLogger(new DebugLogger(LogLevel.All))
+            //   .SetRequestDelay(RequestDelay.FromSeconds(0, 1))
+            //   // Session handler, set a file path to save/load your state/session data
+            //   .SetSessionHandler(new FileSessionHandler() { FilePath = StateFile })
+            //   .Build();
 
-            }
+            ////Load session
+            //LoadSession();
+            //if (!InstaApi.IsUserAuthenticated)
+            //{
+            //    // Call this function before calling LoginAsync
+            //    await InstaApi.SendRequestsBeforeLoginAsync();
+            //    // wait 5 seconds
+            //    await Task.Delay(5000);
+            //    var logInResult = await InstaApi.LoginAsync();
+            //    Debug.WriteLine(logInResult.Value);
+            //    if (logInResult.Succeeded)
+            //    {
+            //        // Call this function after a successful login
+            //        await InstaApi.SendRequestsAfterLoginAsync();
+
+            //        // Save session 
+            //        SaveSession();
+            //    }
+            //    else
+            //    {
+            //        if (logInResult.Value == InstaLoginResult.ChallengeRequired)
+            //        {
+            //            var challenge = await InstaApi.GetChallengeRequireVerifyMethodAsync();
+            //            if (challenge.Succeeded)
+            //            {
+            //                Console.WriteLine("4");
+            //            }
+            //            else
+            //                Console.WriteLine("3");
+            //        }
+            //        else if (logInResult.Value == InstaLoginResult.TwoFactorRequired)
+            //        {
+            //            Console.WriteLine("2");
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    Console.WriteLine("1");
+            //}
+
+            //void LoadSession()
+            //{
+            //    InstaApi?.SessionHandler?.Load();
+
+            //}
+            //void SaveSession()
+            //{
+            //    if (InstaApi == null)
+            //        return;
+            //    if (!InstaApi.IsUserAuthenticated)
+            //        return;
+            //    InstaApi.SessionHandler.Save();
+
+            //}
 
         }
 
@@ -391,11 +459,6 @@ namespace TelegramBotExperiments
 
                 if (message.Text.ToLower() == "/start" || message.Text.ToLower() == "перезагрузка".ToLower())
                 {
-                    //try
-                    //{
-                    //    _login = LoginApi;
-                    //}
-                    //catch { }
                     isLoading = false;
                     isStopProces = true;
                     await botClient.SendTextMessageAsync(message.Chat, "Добро пожаловать!");
@@ -515,7 +578,6 @@ namespace TelegramBotExperiments
 
                             try
                             {
-                                _login = null;
                                 var Islogin =  InstaApi.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1)).Result.Succeeded;
                                 if (!Islogin)
                                 {
@@ -571,7 +633,6 @@ namespace TelegramBotExperiments
 
                             try
                             {
-                                _login = null;
                                 var Islogin = InstaApi.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1)).Result.Succeeded;
                                 if (!Islogin)
                                 {
