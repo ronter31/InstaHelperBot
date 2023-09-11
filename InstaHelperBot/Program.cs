@@ -286,8 +286,8 @@ namespace TelegramBotExperiments
 
             LoadSessions();
 
-            
-            
+            await Task.Run(() => getloginAsync());
+
             //foreach (var item in ApiList)
             //{
             //    try
@@ -310,7 +310,7 @@ namespace TelegramBotExperiments
             //{
             //    Console.WriteLine("0");
             //}
-           // InstaApi.LogoutAsync();
+            // InstaApi.LogoutAsync();
             await Task.Run(() => pr.RunBot());
 
         }
@@ -604,8 +604,18 @@ namespace TelegramBotExperiments
 
                             try
                             {
-                                var Islogin =  InstaApi.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1)).Result.Succeeded;
-                                if (!Islogin)
+
+                                var userSession = new UserSessionData
+                                {
+                                    UserName = account.UserName,
+                                    Password = account.Password
+                                };
+
+                                InstaApi = InstaApiBuilder.CreateBuilder()
+                                   .SetUser(userSession)                                   
+                                   .Build();
+                               
+                                if (!InstaApi.IsUserAuthenticated)
                                 {
                                     await botClient.SendTextMessageAsync(message.Chat, $"Не залогинились, повтори попытку");
 
@@ -655,24 +665,10 @@ namespace TelegramBotExperiments
                         {
                             QueryInsertАccount(account.TypeAcc, account.UserName, account.Password);
 
-                            try
-                            {
-                                var Islogin = InstaApi.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1)).Result.Succeeded;
-                                if (!Islogin)
-                                {
-                                    await botClient.SendTextMessageAsync(message.Chat, $"Не залогинились, повтори попытку");
-
-                                }
-                                else
-                                {
-                                    await botClient.SendTextMessageAsync(message.Chat, "Успешно получили доступ к инстаграму");
-                                    isLoading = true;
-                                }
-                            }
-                            catch
-                            {
-                                await botClient.SendTextMessageAsync(message.Chat, $"Не залогинились, повтори попытку ");
-                            }
+                              
+                            await botClient.SendTextMessageAsync(message.Chat, "Успешно получили доступ к инстаграму");
+                                
+                            
                         }
                         else
                         {
