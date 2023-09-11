@@ -73,6 +73,7 @@ namespace TelegramBotExperiments
         public string nameProfilInstagram;
 
         private static bool isLoading = false;
+        private static bool isLoadingAll = false;
         private int replaceF = 0;
         private DictionaryReplace _dictionaryReplace = new DictionaryReplace { };
 
@@ -114,7 +115,7 @@ namespace TelegramBotExperiments
             {
                 Console.WriteLine($"Add media {count}");
                 var mediaResult =  GetUserMediaAsync( PaginationParameters.MaxPagesToLoad(count), instaUser, userProcessor).Result;
-               // Thread.Sleep(10000);
+               
                 if (mediaResult.Succeeded)
                 {
                     Console.WriteLine($"Succeeded");
@@ -137,7 +138,6 @@ namespace TelegramBotExperiments
 
         async Task RunBot()
         {
-
             var cts = new CancellationTokenSource();
             var cancellationToken = cts.Token;
 
@@ -146,11 +146,8 @@ namespace TelegramBotExperiments
                 AllowedUpdates = { },
             };
 
-
-
             var isActionLoading = false;
 
-           
             // Создаем таймер
             await Task.Run(() => new Timer(async (state) =>
             {
@@ -164,46 +161,55 @@ namespace TelegramBotExperiments
                         Console.WriteLine($"{isLoading} {pr.АccountList().Count} {state}");
                         if (isLoading && pr.АccountList().Count != 0)
                         {
-                            try
-                            {
-                                foreach (var item in _mediaList.Value.OrderBy(x => x.TakenAt).ToList())
-                                {
-                                    if (!isStopProces)
-                                        if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
-                                        {
-                                            pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
-                                            pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
-                                            await Task.Delay(20000);
-                                        }
-                                }
-                            }
-                            catch { }
-                            try
-                            {
-                                
-                                var latestPosts = await LoginApi.Result.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1));
-                                  var c1 = latestPosts.Value;
-                                foreach (var item in latestPosts.Value.OrderBy(x => x.TakenAt).ToList())
-                                {
-                                    if (!isStopProces)
-                                        if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
-                                        {
-                                            pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
-                                            pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
-                                            await Task.Delay(10000);
-                                        }
-                                }
-                            }
-                            catch { Console.WriteLine("41"); }
-                                
+                            await Task.Run(() => getloginAsync());
 
+                            foreach (var itemAcc in ApiList)
+                            {
+                                bool isRepAcc = false;
 
-                             var userResult = await LoginApi.Result.UserProcessor.GetUserAsync(pr.nameProfilInstagram);
+                                try
+                                {
+                                    foreach (var item in itemAcc.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty).Result.Value.OrderBy(x => x.TakenAt).ToList())
+                                    {
+                                        if (!isStopProces)
+                                            if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
+                                            {
+                                                pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
+                                                pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
+                                                await Task.Delay(20000);
+                                            }
+                                    }
+                                }
+
+                                catch
+                                {
+                                    isRepAcc = true;
+                                }
+                                try
+                                {
+
+                                    var latestPosts = await itemAcc.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1));
+                                    var c1 = latestPosts.Value;
+
+                                    foreach (var item in latestPosts.Value.OrderBy(x => x.TakenAt).ToList())
+                                    {
+                                        if (!isStopProces)
+                                            if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
+                                            {
+                                                pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
+                                                pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
+                                                await Task.Delay(10000);
+                                            }
+                                    }
+                                }
+                                catch { isRepAcc = true; }
+
+                                var userResult = await itemAcc.UserProcessor.GetUserAsync(pr.nameProfilInstagram);
                                 try
                                 {
                                     if (userResult.Value != null)
                                     {
-                                        var storyResult = LoginApi.Result.StoryProcessor.GetUserStoryFeedAsync(userResult.Value.Pk);
+                                        var storyResult = itemAcc.StoryProcessor.GetUserStoryFeedAsync(userResult.Value.Pk);
                                         if (!storyResult.Result.Succeeded)
                                         {
                                             Console.WriteLine($"Ошибка получения сторис пользователя: {storyResult.Result.Info.Message}");
@@ -212,31 +218,32 @@ namespace TelegramBotExperiments
                                         {
                                             foreach (var item in storyResult.Result.Value.Items)
                                             {
-                                            if (!isStopProces)
-                                                if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk.ToString()))
-                                                {
-                                                    try
+                                                if (!isStopProces)
+                                                    if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk.ToString()))
                                                     {
-                                                        pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
-                                                        pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", "storis");
+                                                        try
+                                                        {
+                                                            pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
+                                                            pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", "storis");
 
-                                                        await Task.Delay(1000);
+                                                            await Task.Delay(1000);
 
+                                                        }
+                                                        catch
+                                                        {
+                                                            Console.WriteLine("2");
+                                                        }
                                                     }
-                                                    catch
-                                                    {
-                                                        Console.WriteLine("2");
-                                                    }
-                                                }
                                             }
                                         }
                                     }
                                 }
-                                catch { Console.WriteLine("3"); }
-                            }
-                        //}
+                                catch { isRepAcc = true; }
 
-
+                                if (!isRepAcc) break;
+                                
+                            }//перебирает список аккаунтов
+                        }
                     }
                     catch (Exception x)
                     {
@@ -266,14 +273,11 @@ namespace TelegramBotExperiments
             Console.ReadLine();
         }
 
-        
-
         public static Program pr = new Program();
 
         private static IResult<InstaMediaList> _mediaList { get; set; }
         public async static Task Main(string[] args)
         {
-
             Migration migration = new(pr.connString);
 
             pr.nameProfilInstagram = pr.АccountList().Count > 0 ? pr.АccountList().First().TypeAcc : string.Empty;
@@ -283,32 +287,30 @@ namespace TelegramBotExperiments
             LoadSessions();
 
             
-            await Task.Run(() => getloginAsync());
             
-            foreach (var item in ApiList)
-            {
-                try
-                {
-                    _mediaList = await item.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
-                    InstaApi = item;
-                    break;
-                }
-                catch
-                {
-                    Console.WriteLine("not item");
-                }
-            }
+            //foreach (var item in ApiList)
+            //{
+            //    try
+            //    {
+            //        _mediaList = await item.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
+            //        InstaApi = item;
+            //        break;
+            //    }
+            //    catch
+            //    {
+            //        Console.WriteLine("not item");
+            //    }
+            //}
 
-
-            
-
-                if (_mediaList.Value is not null)
-                    Console.WriteLine(_mediaList.Value.Count);
-                else
-                    Console.WriteLine("0");
-
-            
-            InstaApi.LogoutAsync();
+            //if (_mediaList.Value is not null)
+            //{
+            //    Console.WriteLine(_mediaList.Value.Count);
+            //}
+            //else
+            //{
+            //    Console.WriteLine("0");
+            //}
+           // InstaApi.LogoutAsync();
             await Task.Run(() => pr.RunBot());
 
         }
@@ -336,42 +338,51 @@ namespace TelegramBotExperiments
 
         public async static Task getloginAsync()
         {
-            var username = "gogager5";
-            var api = BuildApi(username, "Dima159874");
-            var sessionHandler = new FileSessionHandler { FilePath = username.GetAccountPath(), InstaApi = api };
-
-            api.SessionHandler = sessionHandler;
-            var loginResult = await api.LoginAsync();
-            if (loginResult.Succeeded)
+            if (pr.АccountList().Count != 0)
             {
-                LoggedInUsers.Add(api.GetLoggedUser().LoggedInUser.UserName.ToLower());
-                ApiList.Clear();
-                ApiList.Add(api);
-                api.SessionHandler.Save();
+                foreach (var itemAcc in pr.АccountList())
+                {
+                    var username = itemAcc.UserName;
+                    var api = BuildApi(username, itemAcc.Password);
+                    var sessionHandler = new FileSessionHandler { FilePath = username.GetAccountPath(), InstaApi = api };
+
+                    api.SessionHandler = sessionHandler;
+                    var loginResult = await api.LoginAsync();
+                    if (loginResult.Succeeded)
+                    {
+                        LoggedInUsers.Add(api.GetLoggedUser().LoggedInUser.UserName.ToLower());
+                        //ApiList.Clear();
+                        ApiList.Add(api);
+                        api.SessionHandler.Save();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error:\r\n{loginResult.Info.Message}\r\n\r\n" +
+                            $"Please check ChallengeExample for handling two factor or challenge...");
+                    }
+                }
+
+                //InstaApi = api;
             }
             else
-            {
-                Console.WriteLine($"Error:\r\n{loginResult.Info.Message}\r\n\r\n" +
-                    $"Please check ChallengeExample for handling two factor or challenge...");
+            { 
+            
             }
 
-            InstaApi = api;
-
-
-            //const string StateFile = "state3.bin";
+            //const string StateFile = "state113.bin";
             //var user = "";
             //var password = "";
 
-            ////if (!pr.АccountList().Any())
-            ////{
-            //user = "gogager3";
-            //password = "Dima159874";
-            ////}
-            ////else
-            ////{
-            ////    user = pr.АccountList().First().UserName;
-            ////    password = pr.АccountList().First().Password;
-            ////}
+            //if (!pr.АccountList().Any())
+            //{
+            //    user = "gogager3";
+            //    password = "Dima159874";
+            //}
+            //else
+            //{
+            //    user = pr.АccountList().First().UserName;
+            //    password = pr.АccountList().First().Password;
+            //}
 
 
             //var userSession = new UserSessionData
@@ -460,6 +471,7 @@ namespace TelegramBotExperiments
                 if (message.Text.ToLower() == "/start" || message.Text.ToLower() == "перезагрузка".ToLower())
                 {
                     isLoading = false;
+                    isLoadingAll = false;
                     isStopProces = true;
                     await botClient.SendTextMessageAsync(message.Chat, "Добро пожаловать!");
                     if (!UsersList.Any(x => x.IdUniq == message.From.Username))
@@ -472,9 +484,11 @@ namespace TelegramBotExperiments
                         await botClient.SendTextMessageAsync(message.Chat, @$"Добрый день, {message.From.Username}. Вы уже зарегистрированы");
 
                         ReplyKeyboardMarkup replyKeyboardMarkup = new(new[] { new KeyboardButton[] { "Перезагрузка", "Выгрузить посты" },
+                                                                          new KeyboardButton[] { "Выгрузить все посты" },
                                                                           new KeyboardButton[] { "Замена слов", "Удалить посты" },
                                                                           new KeyboardButton[] { "Указать канал ТГ", "Удалить канал ТГ" },
-                                                                          new KeyboardButton[] { $"Канал 📸{NameAccaunt()}", "Логин/Пароль Инстаграмма" }})
+                                                                          new KeyboardButton[] { $"Канал 📸{NameAccaunt()}", "Логин/Пароль Инстаграмма" },
+                                                                          new KeyboardButton[] { $"Очистить таблицу аккаунтов" }})
                         {
                             ResizeKeyboard = true
                         };
@@ -497,9 +511,11 @@ namespace TelegramBotExperiments
 
                     isAdminPanel = true;
                     ReplyKeyboardMarkup replyKeyboardMarkup = new(new[] { new KeyboardButton[] { "Перезагрузка", "Выгрузить посты" },
+                                                                          new KeyboardButton[] { "Выгрузить все посты" },
                                                                           new KeyboardButton[] { "Замена слов", "Удалить посты" },
                                                                           new KeyboardButton[] { "Указать канал ТГ", "Удалить канал ТГ" },
-                                                                          new KeyboardButton[] { $"Канал 📸{NameAccaunt()}", "Логин/Пароль Инстаграмма" }})
+                                                                          new KeyboardButton[] { $"Канал 📸{NameAccaunt()}", "Логин/Пароль Инстаграмма" },
+                                                                          new KeyboardButton[] { $"Очистить таблицу аккаунтов" }})
                     {
                         ResizeKeyboard = true
                     };
@@ -549,6 +565,16 @@ namespace TelegramBotExperiments
                         account.Password = string.Empty;
                         isAccaunt = true;
                         isLoading = false;
+                        isLoadingAll = false;
+
+                        return;
+                    }
+
+                    if (message.Text.ToLower() == "Очистить таблицу аккаунтов".ToLower())
+                    {
+
+                        QueryTruncate("Аccount");
+                        await botClient.SendTextMessageAsync(message.Chat, "Аккаунты почищены");
 
                         return;
                     }
@@ -569,7 +595,7 @@ namespace TelegramBotExperiments
                         account.Password = message.Text;
                         await botClient.SendTextMessageAsync(message.Chat, "Успешно сохранили данные для инстаграма");
 
-                        QueryTruncate("Аccount");
+                        //QueryTruncate("Аccount");
                         nameProfilInstagram = account.TypeAcc;
 
                         if ((account.TypeAcc != null || NameAccaunt() != "Не задан аккаунт инстаграма") && account.UserName != null && account.Password != null)
@@ -613,9 +639,7 @@ namespace TelegramBotExperiments
                         account.TypeAcc = string.Empty;
                         isNameChanal = true;
                         isLoading = false;
-
-
-                       
+                        isLoading = isLoadingAll;
 
                         return;
                     }
@@ -672,6 +696,17 @@ namespace TelegramBotExperiments
                         if (TelegramGroupList.Count == 0)
                             chatIdCh = message.Chat.Id;
                         isLoading = true;
+                        isStopProces = false;
+                        return;
+                    }
+
+                    if (message.Text.ToLower() == "Выгрузить все посты".ToLower() && АccountList().Count != 0)
+                    {
+
+                        await botClient.SendTextMessageAsync(message.Chat, "Запущен процесс анализа всех постов постов📣");
+                        if (TelegramGroupList.Count == 0)
+                            chatIdCh = message.Chat.Id;
+                        isLoadingAll = true;
                         isStopProces = false;
                         return;
                     }
