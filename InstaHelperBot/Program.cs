@@ -169,7 +169,8 @@ namespace TelegramBotExperiments
 
                                 try
                                 {
-                                    foreach (var item in itemAcc.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty).Result.Value.OrderBy(x => x.TakenAt).ToList())
+                                    var v1 =  itemAcc.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty).Result.Value.OrderBy(x => x.TakenAt).ToList();
+                                    foreach (var item in v1)
                                     {
                                         if (!isStopProces)
                                             if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
@@ -185,24 +186,24 @@ namespace TelegramBotExperiments
                                 {
                                     isRepAcc = true;
                                 }
-                                try
-                                {
+                                //try
+                                //{
 
-                                    var latestPosts = await itemAcc.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1));
-                                    var c1 = latestPosts.Value;
+                                //    var latestPosts = await itemAcc.UserProcessor.GetUserMediaAsync(nameProfilInstagram, PaginationParameters.MaxPagesToLoad(1));
+                                //    var c1 = latestPosts.Value;
 
-                                    foreach (var item in latestPosts.Value.OrderBy(x => x.TakenAt).ToList())
-                                    {
-                                        if (!isStopProces)
-                                            if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
-                                            {
-                                                pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
-                                                pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
-                                                await Task.Delay(10000);
-                                            }
-                                    }
-                                }
-                                catch { isRepAcc = true; }
+                                //    foreach (var item in latestPosts.Value.OrderBy(x => x.TakenAt).ToList())
+                                //    {
+                                //        if (!isStopProces)
+                                //            if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
+                                //            {
+                                //                pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
+                                //                pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
+                                //                await Task.Delay(10000);
+                                //            }
+                                //    }
+                                //}
+                                //catch { isRepAcc = true; }
 
                                 var userResult = await itemAcc.UserProcessor.GetUserAsync(pr.nameProfilInstagram);
                                 try
@@ -253,7 +254,7 @@ namespace TelegramBotExperiments
                     isActionLoading = false;
                 }
 
-            }, isLoading, TimeSpan.Zero, TimeSpan.FromSeconds(20)));
+            }, isLoading, TimeSpan.Zero, TimeSpan.FromSeconds(200)));
 
             bot.ReceiveAsync(
                    pr.HandleUpdateAsync,
@@ -484,11 +485,11 @@ namespace TelegramBotExperiments
                         await botClient.SendTextMessageAsync(message.Chat, @$"Добрый день, {message.From.Username}. Вы уже зарегистрированы");
 
                         ReplyKeyboardMarkup replyKeyboardMarkup = new(new[] { new KeyboardButton[] { "Перезагрузка", "Выгрузить посты" },
-                                                                          new KeyboardButton[] { "Выгрузить все посты" },
                                                                           new KeyboardButton[] { "Замена слов", "Удалить посты" },
                                                                           new KeyboardButton[] { "Указать канал ТГ", "Удалить канал ТГ" },
                                                                           new KeyboardButton[] { $"Канал 📸{NameAccaunt()}", "Логин/Пароль Инстаграмма" },
-                                                                          new KeyboardButton[] { $"Очистить таблицу аккаунтов" }})
+                                                                          new KeyboardButton[] { $"Очистить таблицу аккаунтов" },
+                                                                          new KeyboardButton[] { $"Выгрузить аккаунты" }})
                         {
                             ResizeKeyboard = true
                         };
@@ -511,11 +512,11 @@ namespace TelegramBotExperiments
 
                     isAdminPanel = true;
                     ReplyKeyboardMarkup replyKeyboardMarkup = new(new[] { new KeyboardButton[] { "Перезагрузка", "Выгрузить посты" },
-                                                                          new KeyboardButton[] { "Выгрузить все посты" },
                                                                           new KeyboardButton[] { "Замена слов", "Удалить посты" },
                                                                           new KeyboardButton[] { "Указать канал ТГ", "Удалить канал ТГ" },
                                                                           new KeyboardButton[] { $"Канал 📸{NameAccaunt()}", "Логин/Пароль Инстаграмма" },
-                                                                          new KeyboardButton[] { $"Очистить таблицу аккаунтов" }})
+                                                                          new KeyboardButton[] { $"Очистить таблицу аккаунтов" },
+                                                                          new KeyboardButton[] { $"Выгрузить аккаунты" }})
                     {
                         ResizeKeyboard = true
                     };
@@ -545,6 +546,15 @@ namespace TelegramBotExperiments
                         QueryTruncate("TelegramGroup");
                         setupTG = true;
                         await botClient.SendTextMessageAsync(message.Chat, "Введите Id канала");
+                        return;
+                    }
+
+                    if (message.Text.ToLower() == "Выгрузить аккаунты".ToLower())
+                    {
+                        foreach (var itemAcc in АccountList())
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, @$"Название {itemAcc.UserName}");
+                        }
                         return;
                     }
 
