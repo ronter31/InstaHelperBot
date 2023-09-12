@@ -19,6 +19,7 @@ using System.Diagnostics;
 
 using static InstaHelperBot.MultipleHelper;
 using InstaHelperBot;
+using System.ComponentModel;
 
 namespace TelegramBotExperiments
 {
@@ -164,14 +165,39 @@ namespace TelegramBotExperiments
                         {
                             await Task.Run(() => getloginAsync());
 
+
+
+                            try
+                            {
+                                foreach (var item in _mediaList.Value.OrderBy(x => x.TakenAt).ToList())
+                                {
+                                    if (!isStopProces)
+                                        if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
+                                        {
+                                            pr.SentMessagePostInBot(item, bot, pr.chatIdCh, cancellationToken);
+                                            pr.QueryInsertPost(Convert.ToInt64(item.Pk), "true", item.ProductType);
+                                            await Task.Delay(20000);
+                                        }
+                                }
+                            }
+
+                            catch
+                            {
+
+                            }
+
+                            
+
+
                             foreach (var itemAcc in ApiList)
                             {
                                 bool isRepAcc = false;
 
                                 try
                                 {
-                                    var v1 =  itemAcc.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty).Result.Value.OrderBy(x => x.TakenAt).ToList();
-                                    foreach (var item in v1)
+                                    var v1 =  itemAcc.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
+                                    
+                                    foreach (var item in v1.Result.Value.OrderBy(x => x.TakenAt).ToList())
                                     {
                                         if (!isStopProces)
                                             if (!pr.Posts.Select(x => x.IdPosts.ToString()).ToList().Contains(item.Pk))
@@ -295,28 +321,28 @@ namespace TelegramBotExperiments
 
             await Task.Run(() => getloginAsync());
 
-            //foreach (var item in ApiList)
-            //{
-            //    try
-            //    {
-            //        _mediaList = await item.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
-            //        InstaApi = item;
-            //        break;
-            //    }
-            //    catch
-            //    {
-            //        Console.WriteLine("not item");
-            //    }
-            //}
+            foreach (var item in ApiList)
+            {
+                try
+                {
+                    _mediaList = await item.UserProcessor.GetUserMediaAsync(pr.nameProfilInstagram, PaginationParameters.Empty);
+                    InstaApi = item;
+                    break;
+                }
+                catch
+                {
+                    Console.WriteLine("not item");
+                }
+            }
 
-            //if (_mediaList.Value is not null)
-            //{
-            //    Console.WriteLine(_mediaList.Value.Count);
-            //}
-            //else
-            //{
-            //    Console.WriteLine("0");
-            //}
+            if (_mediaList.Value is not null)
+            {
+                Console.WriteLine(_mediaList.Value.Count);
+            }
+            else
+            {
+                Console.WriteLine("0");
+            }
             // InstaApi.LogoutAsync();
             await Task.Run(() => pr.RunBot());
 
