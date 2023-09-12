@@ -78,6 +78,7 @@ namespace TelegramBotExperiments
         private DictionaryReplace _dictionaryReplace = new DictionaryReplace { };
 
         private long chatIdCh { get; set; }
+        private long chatIdCh1 { get; set; }
         private bool setupTG = false;
         private Аccount account = new Аccount() { };
 
@@ -242,7 +243,12 @@ namespace TelegramBotExperiments
                                 catch { isRepAcc = true; }
 
                                 if (!isRepAcc) break;
-                                
+
+                                try
+                                {
+                                    bot.SendTextMessageAsync(pr.chatIdCh1, @$"Аккаунт {itemAcc.GetCurrentUserAsync().Result.Value.UserName} не доступен");
+                                }
+                                catch { }
                             }//перебирает список аккаунтов
                         }
                     }
@@ -536,8 +542,8 @@ namespace TelegramBotExperiments
                         QueryTelegramGroup(message.Text);
                         setupTG = false;
 
-                        chatIdCh = Convert.ToInt64(message.Text);
-                        await botClient.SendTextMessageAsync(message.Chat, "Успешно установили ID канала");
+                        chatIdCh1 = Convert.ToInt64(message.Text);
+                        await botClient.SendTextMessageAsync(message.Chat, "Успешно установили ID канала для уведомлений");
                         return;
 
                     }
@@ -561,7 +567,7 @@ namespace TelegramBotExperiments
                     if (message.Text.ToLower() == "Удалить канал ТГ".ToLower())
                     {
                         QueryTruncate("TelegramGroup");
-                        chatIdCh = message.Chat.Id;
+                        chatIdCh1 = message.Chat.Id;
                         await botClient.SendTextMessageAsync(message.Chat, "Канал ТГ удален");
                         return;
 
